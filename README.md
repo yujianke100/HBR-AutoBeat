@@ -10,5 +10,5 @@ An automated rhythm game player script for Heaven Burns Red
 - **Game Settings**: 1080p, Windowed Mode
 
 ### Usage Instructions
-1. Run the script before starting the game.
-2. The script will pause automatically if the game window is not in focus.
+1. Run the script before starting the rhythm game.
+2. The script will be exited automatically if the game window is not in focus.
