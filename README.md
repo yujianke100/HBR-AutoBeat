@@ -11,7 +11,7 @@ An automated rhythm game player script for Heaven Burns Red
 - **Screen Resolution**: 1440p
 - **Game Settings**: 1080p, Windowed Mode
 
-Other settings at the end of the demo video.
+Other settings are at the end of the demo video.
 
 ### Usage Instructions
 1. Run the script before starting the rhythm game.
