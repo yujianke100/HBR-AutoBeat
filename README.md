@@ -35,7 +35,7 @@ Other settings are at the end of the demo video.
 
 测试了下，1080p显示器下开1080p游戏窗口也是能用的，就是要确保窗口左上角露出来的同时右下角的判定区域别被遮了就行。低于这个分辨率的电脑，性能估计也跑不了这个脚本。
 
-为了方便小白，已经打包成exe可以一键启动了。
+为了方便小白，已经打包成exe可以一键启动了：
 
 [zxcvbn 版本 (默认)](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
 
@@ -57,7 +57,7 @@ Other settings are at the end of the demo video.
 
 1080pモニターで1080pのゲームウィンドウを使用しても動作確認済みです。ただし、ウィンドウの左上が表示されている状態で、右下の判定エリアが隠れないようにする必要があります。それより低い解像度のPCでは、このスクリプトを動作させる性能はないかもしれません。
 
-初心者のために、すでにexeファイルとしてパッケージ化してあり、ワンクリックで起動できます。
+初心者のために、すでにexeファイルとしてパッケージ化してあり、ワンクリックで起動できます：
 
 [zxcvbn バージョン （デフォルト）](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
 
