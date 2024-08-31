@@ -7,6 +7,8 @@ An automated rhythm game player script for Heaven Burns Red
 
 [Demo video](https://www.bilibili.com/video/BV1ePH7eSEwJ)
 
+**Need to adjust the button size to 80% and turn off the simultaneous press line display.**
+
 Run it without setting up a Python environment: 
 
 [zxcvbn version (default)](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
@@ -19,9 +21,6 @@ Run it without setting up a Python environment:
 - **Operating System**: Windows 11
 - **Screen Resolution**: 1440p (Also tested under 1080p)
 - **Game Settings**: 1080p, Windowed Mode
-
-Other settings are at the end of the demo video.
-The most important thing is to adjust the button size to 80% and turn off the simultaneous press line display.
 
 ### Usage Instructions
 1. Run the script before starting the rhythm game. Ensure that the top left corner and the judgment area on the far right are uncovered.
