@@ -5,6 +5,7 @@ from PIL import ImageDraw, Image
 from pynput.keyboard import Controller, Key
 import win32ui
 import win32con
+import time
 
 keyboard = Controller()
 keys = ['z', 'x', 'c', ',', '.', '/']
@@ -71,19 +72,21 @@ def is_window_on_top(window):
     top_window_hwnd = win32gui.GetForegroundWindow()
     return top_window_hwnd == window._hWnd
 
-def capture_window(window_title, test=False):
+def capture_window(window_title, test_flag=False):
     all_windows = gw.getAllTitles()
     browser_window_titles = [title for title in all_windows if window_title in title]
     chosen_browser_title = browser_window_titles[0]
     window = gw.getWindowsWithTitle(chosen_browser_title)[0]
+    window.restore()
     window.activate()
+    time.sleep(0.5)
     
     hwnd = window._hWnd
     
     client_rect = win32gui.GetClientRect(hwnd)
     client_left, client_top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
 
-    if(test):
+    if(test_flag):
         client_right, client_bottom = win32gui.ClientToScreen(hwnd, (client_rect[2], client_rect[3]))
         client_width = client_right - client_left
         client_height = client_bottom - client_top
@@ -137,4 +140,4 @@ def capture_window(window_title, test=False):
             # time.sleep(0.01)
 
 if __name__ == "__main__":
-    capture_window("HeavenBurnsRed", test=False)
+    capture_window("HeavenBurnsRed", test_flag=False)
