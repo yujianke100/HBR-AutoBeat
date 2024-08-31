@@ -4,6 +4,7 @@ An automated rhythm game player script for Heaven Burns Red
 
 ## Heaven Burns Red Auto Rhythm Game Player
 
+
 [Demo video](https://www.bilibili.com/video/BV1ePH7eSEwJ)
 
 Run it without setting up a Python environment: 
@@ -20,6 +21,7 @@ Run it without setting up a Python environment:
 - **Game Settings**: 1080p, Windowed Mode
 
 Other settings are at the end of the demo video.
+The most important thing is to adjust the button size to 80% and turn off the simultaneous press line display.
 
 ### Usage Instructions
 1. Run the script before starting the rhythm game. Ensure that the top left corner and the judgment area on the far right are uncovered.
@@ -30,6 +32,7 @@ Other settings are at the end of the demo video.
 纯自用的脚本，没做任何兼容。策略非常暴力，直接靠像素点颜色变化实现。如果残血特效影响到判定点，就会失效。只优化到了hard打SS为止，打不了高分，只求打个石头。
 
 音游相关设置可以看这个[视频](https://www.bilibili.com/video/BV1ePH7eSEwJ)的结尾。
+最重要的是要把按键大小调整到80%，然后把同时按压线显示关掉
 
 **脚本会在游戏濒临失败时因为红色光效而失效。**
 
@@ -54,6 +57,7 @@ Other settings are at the end of the demo video.
 **ゲームが失敗しそうなときに、赤い光のエフェクトによってスクリプトが機能しなくなります。**
 
 音ゲーの設定については、この[動画](https://www.bilibili.com/video/BV1ePH7eSEwJ)の最後の部分をご覧ください。
+最も重要なのは、ボタンのサイズを80％に調整し、同時押しラインの表示をオフにすることです。
 
 1080pモニターで1080pのゲームウィンドウを使用しても動作確認済みです。ただし、ウィンドウの左上が表示されている状態で、右下の判定エリアが隠れないようにする必要があります。それより低い解像度のPCでは、このスクリプトを動作させる性能はないかもしれません。
 
