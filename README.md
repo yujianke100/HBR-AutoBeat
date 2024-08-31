@@ -6,7 +6,11 @@ An automated rhythm game player script for Heaven Burns Red
 
 [Demo video](https://www.bilibili.com/video/BV1ePH7eSEwJ)
 
-Run it without setting up a Python environment: [HBR-AutoBeat.exe](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
+Run it without setting up a Python environment: 
+
+[zxcvbn version (default)](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
+
+[zxc,./ version](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
 
 **The script will fail due to the red visual effects when the game is about to fail.**
 
@@ -31,7 +35,11 @@ Other settings are at the end of the demo video.
 
 测试了下，1080p显示器下开1080p游戏窗口也是能用的，就是要确保窗口左上角露出来的同时右下角的判定区域别被遮了就行。低于这个分辨率的电脑，性能估计也跑不了这个脚本。
 
-为了方便小白，已经打包成exe可以一键启动了。[HBR-AutoBeat.exe](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
+为了方便小白，已经打包成exe可以一键启动了。
+
+[zxcvbn 版本 (默认)](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
+
+[zxc,./ 版本](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
 
 就不上传大陆网盘了，上不了gayhub的话你应该也玩不了红烧天堂的外服吧。
 
@@ -49,6 +57,10 @@ Other settings are at the end of the demo video.
 
 1080pモニターで1080pのゲームウィンドウを使用しても動作確認済みです。ただし、ウィンドウの左上が表示されている状態で、右下の判定エリアが隠れないようにする必要があります。それより低い解像度のPCでは、このスクリプトを動作させる性能はないかもしれません。
 
-初心者のために、すでにexeファイルとしてパッケージ化してあり、ワンクリックで起動できます。[HBR-AutoBeat.exe](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
+初心者のために、すでにexeファイルとしてパッケージ化してあり、ワンクリックで起動できます。
+
+[zxcvbn バージョン （デフォルト）](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
+
+[zxc,./ バージョン ](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
 
 スクリプトを起動する前に、ゲームを「ライブ開始」画面まで進めてからスクリプトを起動してください。スクリプトは自動的にゲームに切り替え、スタートボタンを押すだけで始まります。終了したら、ゲームを最小化するか、他のウィンドウに切り替えるとスクリプトは自動的に終了します。
