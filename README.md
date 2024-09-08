@@ -1,9 +1,9 @@
 # HBR-AutoBeat
 An automated rhythm game player script for Heaven Burns Red
 
-**This script is intended solely for obtaining rewards and is not recommended for use in achieving high scores.**
-
 **该脚本只用于获取奖励，不提倡用于冲高分。**
+
+**This script is intended solely for obtaining rewards and is not recommended for use in achieving high scores.**
 
 **このスクリプトは報酬を得るためだけに使用され、高得点を狙うために使用することは推奨されません。**
 
