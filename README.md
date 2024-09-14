@@ -7,6 +7,8 @@ An automated rhythm game player script for Heaven Burns Red
 
 **このスクリプトは報酬を得るためだけに使用され、高得点を狙うために使用することは推奨されません。**
 
+[OD条刻度尺](https://github.com/yujianke100/HBR-OD-Ruler)
+
 ## 说明
 
 **总结几个常见问题。**
