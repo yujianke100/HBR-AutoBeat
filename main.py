@@ -1,4 +1,4 @@
-import pyautogui
+import pyautogui #不能省，否则会让窗口识别失效
 import pygetwindow as gw
 import win32gui
 from PIL import ImageDraw, Image
@@ -8,7 +8,7 @@ import win32con
 import time
 
 keyboard = Controller()
-keys = ['z', 'x', 'c', ',', '.', '/']
+keys = ['z', 'x', 'c', 'v', 'b', 'n']
 key_states = {key: 0 for key in keys}  # 跟踪按键状态
 
 points = [(325, 810), (575, 810), (825, 810), (1075, 810), (1325, 810), (1575, 810)]
@@ -18,7 +18,7 @@ original_points_colors = [(219, 57, 222), (208, 41, 211), (132, 49, 147), (118, 
 original_red_points_colors = [(211, 54, 211), (201, 39, 201), (130, 47, 141), (117, 47, 132), (154, 49, 163), (117, 48, 133)]
 # original_hyper_points_colors = [(79, 40, 96), (79, 40, 94), (78, 40, 93), (77, 40, 92), (77, 40, 91), (76, 40, 90)]
 
-blue_points_colors = [(161, 171, 250), (151, 165, 247), (125, 144, 244), (94, 116, 241), (81, 104, 240), (85, 115, 238)]
+blue_points_colors = [(162, 171, 250), (151, 165, 247), (125, 144, 244), (94, 116, 241), (81, 104, 240), (85, 115, 236)]
 # blue_red_points_colors = [,(146, 155, 235),,(95, 106, 224)]
 
 def capture_screenshot(left, top, width, height):
@@ -132,7 +132,7 @@ def capture_window(window_title, test_flag=False):
                 key_states[keys[i]] += 1
                 continue
 
-            if key_states[keys[i]] > 5 and color != original_color:
+            if key_states[keys[i]] > 5 and (abs(color[0] - original_color[0]) > 5 or abs(color[1] - original_color[1]) > 5 or abs(color[2] - original_color[2]) > 5):
                 keyboard.release(keys[i])
                 key_states[keys[i]] = 0
  
