@@ -1,11 +1,11 @@
 # HBR-AutoBeat
 An automated rhythm game player script for Heaven Burns Red
 
-**该脚本只用于获取奖励，不提倡用于冲高分。**
+**该脚本只用于获取奖励。高难度下的部分逻辑未实现，以确保本脚本无法冲高分**
 
-**This script is intended solely for obtaining rewards and is not recommended for use in achieving high scores.**
+**This script is intended solely for obtaining rewards. Part of the logic in high difficulty is not implemented to ensure that this script cannot achieve high scores.**
 
-**このスクリプトは報酬を得るためだけに使用され、高得点を狙うために使用することは推奨されません。**
+**このスクリプトは報酬を得るためだけに使用され。高スコアを達成できないことを保証するために、高難易度の一部のロジックは実装されていません。**
 
 [OD条刻度尺](https://github.com/yujianke100/HBR-OD-Ruler)
 
