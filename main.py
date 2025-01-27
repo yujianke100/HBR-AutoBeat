@@ -252,8 +252,8 @@ class TransparentWindow(QMainWindow):
         self.language_texts = {
             "zh_CN": {
                 "title": "HBR-AutoBeat",
-                "reposition": "重新定位窗口位置",
-                "help": "'o' 激活，'p' 取消激活，\n直接点击上方按钮也能切换激活状态。\n激活后聚焦游戏内，按钮变绿，打歌开始。\n游戏窗口移动后先点击'重新定位窗口位置'。",
+                "reposition": "重新识别游戏窗口",
+                "help": "'o' 激活，'p' 取消激活，\n直接点击上方按钮也能切换激活状态。\n激活后聚焦游戏内，按钮变绿，打歌开始。\n游戏窗口移动后先点击'重新识别游戏窗口'。\n使用前请先初始化设置，再将按键大小设置为80%。",
                 "key_status": "按键状态",
                 "note_running_not_focus": "未激活，未聚焦",
                 "running_not_focus": "已激活，未聚焦",
@@ -262,8 +262,8 @@ class TransparentWindow(QMainWindow):
             },
             "zh_TW": {
                 "title": "HBR-AutoBeat",
-                "reposition": "重新定位窗口位置",
-                "help": "'o' 鍵啟用，'p' 鍵取消啟用，\n直接點擊上方按鈕也能切換激活狀態。\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n移動遊戲窗口後請先點擊'重新定位窗口位置'。",
+                "reposition": "重新識別遊戲窗口",
+                "help": "'o' 鍵啟用，'p' 鍵取消啟用，\n直接點擊上方按鈕也能切換激活狀態。\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n使用前請先初始化設置，再將按鍵大小設置為80%。",
                 "key_status": "按鍵狀態",
                 "note_running_not_focus": "未啟用，未聚焦",
                 "running_not_focus": "已啟用，未聚焦",
@@ -272,8 +272,8 @@ class TransparentWindow(QMainWindow):
             },
             "ja_JP": {
                 "title": "HBR-AutoBeat", 
-                "reposition": "ウィンドウの位置を再調整",  
-                "help": "'o'キーで有効化、'p'キーで無効化、\n上のボタンで状態を切り替えられます。\n有効化後、ゲーム内にフォーカスを合わせ、\nボタンが緑色になったら開始します。\nウィンドウ移動後は「再調整」をクリックしてください。",
+                "reposition": "ゲームウィンドウを再認識",  
+                "help": "'o'キーで有効化、'p'キーで無効化、\n上のボタンで状態を切り替えられます。\n有効化後、ゲーム内にフォーカスを合わせ、\nボタンが緑色になったら開始します。\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n使用前に初期設定を行い、ボタンサイズを80％に設定してください。",
                 "key_status": "キーの状態",
                 "note_running_not_focus": "無効、フォーカスなし", 
                 "running_not_focus": "有効、フォーカスなし",  
@@ -282,8 +282,8 @@ class TransparentWindow(QMainWindow):
             },
             "en_US": {
                 "title": "HBR-AutoBeat",
-                "reposition": "Reposition Window",
-                "help": "Press 'o' to activate, press 'p' to deactivate, \nClicking the button above can also toggle the state.\nFocus on the game window after activation. \nButton turns green to start.\nIf the game window moves, click 'Reposition Window' first.",
+                "reposition": "Re-recognize game window",
+                "help": "Press 'o' to activate, press 'p' to deactivate, \nClicking the button above can also toggle the state.\nFocus on the game window after activation. \nButton turns green to start.\nIf the game window moves, click 'Re-recognize game window' first.\nPlease initialize settings first, then set the button size to 80%.",
                 "key_status": "Key Status",
                 "note_running_not_focus": "Not running, not focused",
                 "running_not_focus": "running, not focused",

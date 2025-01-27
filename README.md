@@ -1,6 +1,8 @@
 # HBR-AutoBeat
 An automated rhythm game player script for Heaven Burns Red
 
+![image](screenshot.png)
+
 **该脚本只用于获取奖励。高难度下的部分逻辑未实现，以确保本脚本无法冲高分**
 
 **This script is intended solely for obtaining rewards. Part of the logic in high difficulty is not implemented to ensure that this script cannot achieve high scores.**
@@ -12,8 +14,6 @@ An automated rhythm game player script for Heaven Burns Red
 ## 说明
 
 **总结几个常见问题。**
-- 打开脚本后游戏没开始：手动点开始，脚本只管打歌
-- 只按半边：源代码按键设置是zxc,./，HBR-AutoBeat_zxcvbn.exe才是默认的zxcvbn。
 - 点按正常长按变点按：按键大小改为80%。
 - 闪退：确定是steam客户端，窗口名称为HeavenBurnsRed
 - 疯狂连点：确认游戏是1080p，1080p屏幕应该设置100%缩放，2k我测试125%正常
@@ -32,11 +32,7 @@ An automated rhythm game player script for Heaven Burns Red
 
 测试了下，1080p显示器下开1080p游戏窗口也是能用的，就是要确保窗口左上角露出来的同时右下角的判定区域别被遮了就行。低于这个分辨率的电脑，性能估计也跑不了这个脚本。
 
-为了方便小白，已经打包成exe可以一键启动了：
-
-[zxcvbn 版本 (默认)](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
-
-[zxc,./ 版本](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
+为了方便小白，已经[打包成exe](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe)可以一键启动了：
 
 就不上传大陆网盘了，上不了gayhub的话你应该也玩不了红烧天堂的外服吧。
 
@@ -50,11 +46,7 @@ An automated rhythm game player script for Heaven Burns Red
 
 **Need to adjust the button size to 80% and turn off the simultaneous press line display.**
 
-Run it without setting up a Python environment: 
-
-[zxcvbn version (default)](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
-
-[zxc,./ version](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
+[Run it without setting up a Python environment](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe).
 
 **The script will fail due to the red visual effects when the game is about to fail.**
 
@@ -80,10 +72,7 @@ Run it without setting up a Python environment:
 
 1080pモニターで1080pのゲームウィンドウを使用しても動作確認済みです。ただし、ウィンドウの左上が表示されている状態で、右下の判定エリアが隠れないようにする必要があります。それより低い解像度のPCでは、このスクリプトを動作させる性能はないかもしれません。
 
-初心者のために、すでにexeファイルとしてパッケージ化してあり、ワンクリックで起動できます：
+初心者のために、すでに[exeファイル](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe)としてパッケージ化してあり、ワンクリックで起動できます。。
 
-[zxcvbn バージョン （デフォルト）](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat_zxcvbn.exe)
-
-[zxc,./ バージョン ](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v1.0/HBR-AutoBeat.exe)
 
 スクリプトを起動する前に、ゲームを「ライブ開始」画面まで進めてからスクリプトを起動してください。スクリプトは自動的にゲームに切り替え、スタートボタンを押すだけで始まります。終了したら、ゲームを最小化するか、他のウィンドウに切り替えるとスクリプトは自動的に終了します。
