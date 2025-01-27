@@ -156,7 +156,7 @@ def capture_window(window_title, test_flag=False):
     all_windows = gw.getAllTitles()
     browser_window_titles = [title for title in all_windows if window_title in title]
     if browser_window_titles == []:
-        print("指定されたウィンドウが見つかりません。ウィンドウのタイトルが正しいか確認をしてください。")
+        print("指定されたウィンドウが見つかりません。ウィンドウのタイトルが正しいか確認をしてください!")
         exit()
     chosen_browser_title = browser_window_titles[0]
     window = gw.getWindowsWithTitle(chosen_browser_title)[0]
