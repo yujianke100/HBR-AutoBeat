@@ -112,10 +112,10 @@ def on_press(key):
         if is_window_on_top(window):  # 仅在窗口聚焦时检测输入
             if key.char == "o":  # 按下 'o' 键开始自动演奏
                 running = True
-                print("正在打歌，按'p'停止!")
+                print("曲が再生中です! 停止をするには「p」を押してください。")
             elif key.char == "p":  # 按下 'p' 键停止自动演奏
                 running = False
-                print("已停止打歌，按'o'继续!")
+                print("曲が停止しました。開始をするには「o」を押してください。")
                 # 模拟esc
                 keyboard.press(Key.esc)
                 keyboard.release(Key.esc)
@@ -143,7 +143,7 @@ def on_press(key):
 def on_release(key):
     pass
 
-force_run = input("是否强制运行？（y/n）,默认n。如强制运行，请先打开‘演唱会开始’界面，然后输入y：")
+force_run = input("実行しますか?(y/n)、既定は「n」です。強制的に実行するには、まず「ライブ開始」のインターフェースを開いて「y」を入力してください。")
 
 listener = Listener(on_press=on_press, on_release=on_release)
 listener.start()
@@ -156,7 +156,7 @@ def capture_window(window_title, test_flag=False):
     all_windows = gw.getAllTitles()
     browser_window_titles = [title for title in all_windows if window_title in title]
     if browser_window_titles == []:
-        print("未找到指定窗口，请检查窗口标题是否正确！")
+        print("指定されたウィンドウが見つかりません。ウィンドウのタイトルが正しいか確認をしてください。")
         exit()
     chosen_browser_title = browser_window_titles[0]
     window = gw.getWindowsWithTitle(chosen_browser_title)[0]
@@ -179,11 +179,11 @@ def capture_window(window_title, test_flag=False):
     client_height = client_bottom - client_top
 
     if test_flag:
-        print("窗口分辨率：", client_width, client_height)
+        print("ウィンドウ解像度:", client_width, client_height)
         test(client_left, client_top, client_width, client_height)
 
     if(client_width != 1920 or client_height != 1080):
-        print(f"窗口分辨率不匹配。需要设置为1920x1080，当前识别为{client_width}x{client_height}，请重新在游戏内设置分辨率。按回车退出。")
+        print("ウィンドウの解像度が一致しません。1920x1080 に設定する必要があります。現在は {client_width}x{client_height} の解像度が設定されています。ゲーム内の解像度設定をリセットしてください。終了するには Enter キーを押してください。")
         input()
         exit()
 
@@ -198,23 +198,23 @@ def capture_window(window_title, test_flag=False):
         if not is_window_on_top(window):
             if not closed_printed:
                 if(force_run != 'y'):
-                    print("未聚焦！聚焦后按 'o' 键开始打歌，按 'p' 键停止")
+                    print("未収集です! フォーカス後に「o」キーを押して曲の再生を開始して「p」キーを押して停止します。")
                 else:
-                    print("未聚焦！已强制运行，聚焦后继续打歌")
+                    print("未収集です! 強制的に実行中です。ライブの終了後も操作を継続します。")
                 running = False  # 窗口未聚焦时停止打歌
                 closed_printed = True  # 设置标志，确保只打印一次
             time.sleep(0.1)  # 添加延迟，减少CPU占用
             continue
         else:
             if closed_printed:
-                print("已聚焦！", end=' ')  # 窗口重新聚焦时打印“已聚焦”
+                print("フォーカスしました!", end=' ')  # 窗口重新聚焦时打印“已聚焦”
                 if(force_run == 'y'):
-                    print("已强制运行")
+                    print("強制的に実行しました")
                     running = True
                 elif running:
-                    print("正在打歌，按 'p' 键停止")
+                    print("曲を再生中です。停止するには「p」を押してください。")
                 else:
-                    print("按 'o' 键开始打歌")
+                    print("曲の再生を開始するには「o」を押してください。")
             closed_printed = False  # 窗口重新聚焦时重置标志
 
         if not running:
