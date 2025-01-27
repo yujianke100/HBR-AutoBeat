@@ -22,18 +22,15 @@ An automated rhythm game player script for Heaven Burns Red
 - 闪退：确定是steam客户端，窗口名称为HeavenBurnsRed
 - 疯狂连点：确认游戏是1080p，1080p屏幕应该设置100%缩放，2k我测试125%正常
 - 全miss：确认脚本还开着、按键设置正确、打开脚本后已回到了游戏、游戏左上角和下方所有按键没被遮挡。**还有人通过管理员权限打开解决的**。cpu占满了还miss的话是电脑性能不够。
-- 不能完美全连：故意的，我分享这个脚本是为了帮你拿奖励，不是为了攻击大佬
-- 能自己凹到完美吗：和拿奖励无关，完全不推荐。hard及以上有一个逻辑我直接没做，但normal的全做了，理论上能全完美。想凹就确认好配置以及脚本运行效率(全完美重点是响应得够快，逻辑再严，脚本开个小差就G了)，然后给不同的歌凹设置
+- 不能完美全连：拿个奖励就得了，拿脚本冲顶分，别被官方针对了搞得谁都用不了
 
 [NGA帖子传送门（新版）](https://bbs.nga.cn/read.php?tid=43140018&_ff=510381)
 [NGA帖子传送门（旧版）](https://bbs.nga.cn/read.php?&tid=41488250)
 
 纯自用的脚本，没做任何兼容。策略非常暴力，直接靠像素点颜色变化实现。如果残血特效影响到判定点，就会失效。只优化到了hard打SS为止，打不了高分，只求打个石头。
 
-音游相关设置可以看这个[视频](https://www.bilibili.com/video/BV1ePH7eSEwJ)的结尾。
-最重要的是要把按键大小调整到80%，然后把同时按压线显示关掉
-
-**脚本会在游戏濒临失败时因为红色光效而失效。**
+音游相关设置可以看这个[视频](https://www.bilibili.com/video/BV1ePH7eSEwJ)的开头。
+初始化设置，然后按键大小调整到80%，再把同时按压线显示关掉
 
 测试了下，1080p显示器下开1080p游戏窗口也是能用的，就是要确保窗口左上角露出来的同时右下角的判定区域别被遮了就行。低于这个分辨率的电脑，性能估计也跑不了这个脚本。
 
@@ -53,8 +50,6 @@ An automated rhythm game player script for Heaven Burns Red
 
 [Run it without setting up a Python environment](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe).
 
-**The script will fail due to the red visual effects when the game is about to fail.**
-
 ### Test Environment
 - **Operating System**: Windows 11
 - **Screen Resolution**: 1440p (Also tested under 1080p)
@@ -70,9 +65,7 @@ An automated rhythm game player script for Heaven Burns Red
 
 最高得点を狙うわけではなく、ハードでSSランクを取るために最適化してありますが、高得点を目指すことはできません。ただ、報酬を確保するためのものです。
 
-**ゲームが失敗しそうなときに、赤い光のエフェクトによってスクリプトが機能しなくなります。**
-
-音ゲーの設定については、この[動画](https://www.bilibili.com/video/BV1ePH7eSEwJ)の最後の部分をご覧ください。
+音ゲーの設定については、この[動画](https://www.bilibili.com/video/BV1ePH7eSEwJ)をご覧ください。
 最も重要なのは、ボタンのサイズを80％に調整し、同時押しラインの表示をオフにすることです。
 
 1080pモニターで1080pのゲームウィンドウを使用しても動作確認済みです。ただし、ウィンドウの左上が表示されている状態で、右下の判定エリアが隠れないようにする必要があります。それより低い解像度のPCでは、このスクリプトを動作させる性能はないかもしれません。
