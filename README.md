@@ -1,7 +1,11 @@
 # HBR-AutoBeat
 An automated rhythm game player script for Heaven Burns Red
 
-![image](screenshot.png)
+![image](figs/screenshot.png)
+<div style="display: flex; justify-content: space-between;">
+  <img src="figs/japanese.png" style="width: 48%; min-width: 100px;" />
+  <img src="figs/english.png" style="width: 48%; min-width: 100px;" />
+</div>
 
 **该脚本只用于获取奖励。高难度下的部分逻辑未实现，以确保本脚本无法冲高分**
 
