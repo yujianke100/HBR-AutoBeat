@@ -107,10 +107,19 @@ class TransparentWindow(QMainWindow):
         self.client_left, self.client_top, self.client_width, self.client_height, self.y_value, self.min_x, self.max_x = init(
             "HeavenBurnsRed", test_flag=False)
         # 重新设置窗口位置
-        self.setGeometry(self.client_left + int(1920/3), self.client_top, 250, 250)
+        self.setGeometry(self.client_left + int(1920/3), self.client_top, 10, 10)
         
     def exitApplication(self):
         sys.exit()
+
+    def toggleHelp(self):
+        # if self.help_label.isHidden():
+        #     self.help_label.show()
+        # else:
+        #     self.help_label.hide()
+        # self.repositionWindow()
+        # 用弹窗弹出帮助信息
+        QMessageBox.information(self, "Help", self.language_texts[self.language]["help"])
 
     def initUI(self):
         # 设置窗口标志
@@ -224,15 +233,30 @@ class TransparentWindow(QMainWindow):
         self.toggle_button.clicked.connect(self.toggleRunning)
 
         # 增加说明标签
-        self.help_label = QLabel("")
-        self.help_label.setStyleSheet("""
-            QLabel {
+        # self.help_label = QLabel("")
+        # self.help_label.setStyleSheet("""
+        #     QLabel {
+        #         color: white;
+        #         background-color: rgba(0, 0, 0, 150);
+        #         padding: 5px;
+        #         border-radius: 5px;
+        #     }
+        # """)
+        # 增加用于隐藏/显示说明的按钮
+        self.help_button = QPushButton("Help")
+        self.help_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(0,0,0, 150);
                 color: white;
-                background-color: rgba(0, 0, 0, 150);
+                border: none;
                 padding: 5px;
-                border-radius: 5px;
+                border-radius: 3px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 255, 0, 200);
             }
         """)
+        self.help_button.clicked.connect(self.toggleHelp)
 
         # 添加所有组件到布局
         layout.addWidget(self.title_bar)  # 添加标题栏
@@ -240,7 +264,8 @@ class TransparentWindow(QMainWindow):
         lang_layout.addWidget(self.lang_combo)
         layout.addLayout(lang_layout)
         layout.addWidget(self.toggle_button)
-        layout.addWidget(self.help_label)
+        # layout.addWidget(self.help_label)
+        layout.addWidget(self.help_button)
 
         # 初始化语言文本
         self.initLanguageTexts()
@@ -253,7 +278,7 @@ class TransparentWindow(QMainWindow):
             "zh_CN": {
                 "title": "HBR-AutoBeat",
                 "reposition": "重新识别游戏窗口",
-                "help": "'o' 激活，'p' 取消激活，\n直接点击上方按钮也能切换激活状态。\n激活后聚焦游戏内，按钮变绿，打歌开始。\n游戏窗口移动后先点击'重新识别游戏窗口'。\n使用前请先初始化设置，再将按键大小设置为80%。",
+                "help": "'o' 激活，'p' 取消激活并暂停，直接点击上方按钮也能切换激活状态。\n\n激活后聚焦游戏内，按钮变绿，打歌开始。\n\n游戏窗口移动后先点击'重新识别游戏窗口'。\n\n使用前请先初始化设置，关闭按压线,再将按键大小设置为80%。",
                 "key_status": "按键状态",
                 "note_running_not_focus": "未激活，未聚焦",
                 "running_not_focus": "已激活，未聚焦",
@@ -263,7 +288,7 @@ class TransparentWindow(QMainWindow):
             "zh_TW": {
                 "title": "HBR-AutoBeat",
                 "reposition": "重新識別遊戲窗口",
-                "help": "'o' 鍵啟用，'p' 鍵取消啟用，\n直接點擊上方按鈕也能切換激活狀態。\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n使用前請先初始化設置，再將按鍵大小設置為80%。",
+                "help": "'o' 鍵啟用，'p' 鍵取消啟用並暫停，直接點擊上方按鈕也能切換激活狀態。\n\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n\n使用前請先初始化設置，關閉按壓線，再將按鍵大小設置為80%。",
                 "key_status": "按鍵狀態",
                 "note_running_not_focus": "未啟用，未聚焦",
                 "running_not_focus": "已啟用，未聚焦",
@@ -273,7 +298,7 @@ class TransparentWindow(QMainWindow):
             "ja_JP": {
                 "title": "HBR-AutoBeat", 
                 "reposition": "ゲームウィンドウを再認識",  
-                "help": "'o'キーで有効化、'p'キーで無効化、\n上のボタンで状態を切り替えられます。\n有効化後、ゲーム内にフォーカスを合わせ、\nボタンが緑色になったら開始します。\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n使用前に初期設定を行い、ボタンサイズを80％に設定してください。",
+                "help": "'o'キーで有効化、'p'キーで無効化、そして一時停止します。上のボタンで状態を切り替えられます。\n\n有効化後、ゲーム内にフォーカスを合わせ、ボタンが緑色になったら開始します。\n\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n\n使用前に初期設定を行い、プレスラインを閉じる、ボタンサイズを80％に設定してください。",
                 "key_status": "キーの状態",
                 "note_running_not_focus": "無効、フォーカスなし", 
                 "running_not_focus": "有効、フォーカスなし",  
@@ -283,7 +308,7 @@ class TransparentWindow(QMainWindow):
             "en_US": {
                 "title": "HBR-AutoBeat",
                 "reposition": "Re-recognize game window",
-                "help": "Press 'o' to activate, press 'p' to deactivate, \nClicking the button above can also toggle the state.\nFocus on the game window after activation. \nButton turns green to start.\nIf the game window moves, click 'Re-recognize game window' first.\nPlease initialize settings first, then set the button size to 80%.",
+                "help": "Press 'o' to activate, press 'p' to deactivate and pause the game. Clicking the button above can also toggle the state. \n\nFocus on the game window after activation. Button turns green to start.\n\nIf the game window moves, click 'Re-recognize game window' first.\n\nPlease initialize settings first, then close the press line and set the button size to 80%.",
                 "key_status": "Key Status",
                 "note_running_not_focus": "Not running, not focused",
                 "running_not_focus": "running, not focused",
@@ -297,7 +322,7 @@ class TransparentWindow(QMainWindow):
         texts = self.language_texts.get(language, self.language_texts["en_US"])
         self.title_label.setText(texts["title"])
         self.reposition_button.setText(texts["reposition"])
-        self.help_label.setText(texts["help"])
+        # self.help_label.setText(texts["help"])
         # self.key_status.setText(texts["key_status"])
         self.update()
         self.repositionWindow()
