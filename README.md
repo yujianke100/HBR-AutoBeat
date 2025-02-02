@@ -34,7 +34,7 @@ An automated rhythm game player script for Heaven Burns Red
 
 测试了下，1080p显示器下开1080p游戏窗口也是能用的，就是要确保窗口左上角露出来的同时右下角的判定区域别被遮了就行。低于这个分辨率的电脑，性能估计也跑不了这个脚本。
 
-为了方便小白，已经[打包成exe](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe)可以一键启动了：
+为了方便小白，已经[打包成exe](https://github.com/yujianke100/HBR-AutoBeat/releases/latest/download/HBR-AutoBeat.exe)可以一键启动了：
 
 就不上传大陆网盘了，上不了gayhub的话你应该也玩不了红烧天堂的外服吧。
 
