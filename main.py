@@ -1,8 +1,15 @@
+import ctypes
+# ctypes.windll.user32.SetProcessDPIAware() # 高分辨率屏幕适配
+ctypes.windll.user32.SetProcessDpiAwarenessContext(-4)
+
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget,
                            QComboBox, QPushButton, QHBoxLayout, QMessageBox, QSizePolicy)
 from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot
 from PyQt5.QtGui import QFont
 import sys
+# app = QApplication(sys.argv)
+# app.setAttribute(Qt.AA_EnableHighDpiScaling)  # 启用 Qt 的 DPI 适配
+# app.setAttribute(Qt.AA_UseHighDpiPixmaps)  # 让 QPixmap 适配高 DPI
 import time
 
 import pyautogui  # 不能省，否则会让窗口识别失效  # noqa: F401
@@ -13,7 +20,6 @@ import win32ui
 from PIL import Image, ImageDraw
 from pynput import keyboard
 from pynput.keyboard import Controller, Key, KeyCode, Listener  # noqa: F401
-
 
 from threading import Thread
 
@@ -56,8 +62,8 @@ def init(window_title, test_flag=False):
     client_width = client_right - client_left
     client_height = client_bottom - client_top
 
-    if test_flag:
-        test(client_left, client_top, client_width, client_height)
+    # if test_flag:
+    #     test(client_left, client_top, client_width, client_height)
 
     if (client_width != 1920 or client_height != 1080):
         app = QApplication(sys.argv)  # 创建 QApplication 实例
@@ -150,7 +156,7 @@ class TransparentWindow(QMainWindow):
         self.title_bar_layout.setContentsMargins(0, 0, 0, 0)  # 去除布局的边距
 
         # 标题标签
-        self.title_label = QLabel("HBR-AutoBeat")
+        self.title_label = QLabel("HBR-AutoBeat V2.0.1")
         self.title_label.setStyleSheet("""
             background-color: rgba(0, 0, 0, 150);
             color: white;
@@ -267,6 +273,22 @@ class TransparentWindow(QMainWindow):
         # layout.addWidget(self.help_label)
         layout.addWidget(self.help_button)
 
+        # # 增加一个测试按钮
+        # test_button = QPushButton("Test")
+        # test_button.setStyleSheet("""
+        #     QPushButton {
+        #         background-color: rgba(0,0,0, 150);
+        #         color: white;
+        #         border: none;
+        #         padding: 5px;
+        #         border-radius: 3px;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: rgba(0, 255, 0, 200);
+        #     }
+        # """)
+        # test_button.clicked.connect(lambda: test(self.client_left, self.client_top, self.client_width, self.client_height))
+
         # 初始化语言文本
         self.initLanguageTexts()
         self.languageChanged(0)
@@ -276,7 +298,7 @@ class TransparentWindow(QMainWindow):
         """初始化语言文本"""
         self.language_texts = {
             "zh_CN": {
-                "title": "HBR-AutoBeat",
+                # "title": "HBR-AutoBeat",
                 "reposition": "重新识别游戏窗口",
                 "help": "'o' 激活，'p' 取消激活并暂停，直接点击上方按钮也能切换激活状态。\n\n激活后聚焦游戏内，按钮变绿，打歌开始。\n\n游戏窗口移动后先点击'重新识别游戏窗口'。\n\n使用前请先初始化设置，关闭按压线,再将按键大小设置为80%。",
                 "key_status": "按键状态",
@@ -286,7 +308,7 @@ class TransparentWindow(QMainWindow):
                 "running_focus": "已激活，已聚焦"
             },
             "zh_TW": {
-                "title": "HBR-AutoBeat",
+                # "title": "HBR-AutoBeat",
                 "reposition": "重新識別遊戲窗口",
                 "help": "'o' 鍵啟用，'p' 鍵取消啟用並暫停，直接點擊上方按鈕也能切換激活狀態。\n\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n\n使用前請先初始化設置，關閉按壓線，再將按鍵大小設置為80%。",
                 "key_status": "按鍵狀態",
@@ -296,7 +318,7 @@ class TransparentWindow(QMainWindow):
                 "running_focus": "已啟用，已聚焦"
             },
             "ja_JP": {
-                "title": "HBR-AutoBeat", 
+                # "title": "HBR-AutoBeat", 
                 "reposition": "ゲームウィンドウを再認識",  
                 "help": "'o'キーで有効化、'p'キーで無効化、そして一時停止します。上のボタンで状態を切り替えられます。\n\n有効化後、ゲーム内にフォーカスを合わせ、ボタンが緑色になったら開始します。\n\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n\n使用前に初期設定を行い、プレスラインを閉じる、ボタンサイズを80％に設定してください。",
                 "key_status": "キーの状態",
@@ -306,7 +328,7 @@ class TransparentWindow(QMainWindow):
                 "running_focus": "有効、フォーカスあり" 
             },
             "en_US": {
-                "title": "HBR-AutoBeat",
+                # "title": "HBR-AutoBeat",
                 "reposition": "Re-recognize game window",
                 "help": "Press 'o' to activate, press 'p' to deactivate and pause the game. Clicking the button above can also toggle the state. \n\nFocus on the game window after activation. Button turns green to start.\n\nIf the game window moves, click 'Re-recognize game window' first.\n\nPlease initialize settings first, then close the press line and set the button size to 80%.",
                 "key_status": "Key Status",
@@ -320,7 +342,7 @@ class TransparentWindow(QMainWindow):
     def changeLanguage(self, language):
         self.language = language
         texts = self.language_texts.get(language, self.language_texts["en_US"])
-        self.title_label.setText(texts["title"])
+        # self.title_label.setText(texts["title"])
         self.reposition_button.setText(texts["reposition"])
         # self.help_label.setText(texts["help"])
         # self.key_status.setText(texts["key_status"])
@@ -455,30 +477,46 @@ def capture_screenshot(left, top, width, height):
 
     return img
 
-
-def test(client_left, client_top, client_width, client_height):
-    print("窗口分辨率：", client_width, client_height)
+def get_screenshot(client_left, client_top, client_width, client_height):
     screenshot=capture_screenshot(
         client_left, client_top, client_width, client_height
     )
+    return screenshot
+    
+
+def test(client_left, client_top, client_width, client_height):
+    print("窗口分辨率：", client_width, client_height)
+    # screenshot=capture_screenshot(
+    #     client_left, client_top, client_width, client_height
+    # )
+    screenshot=get_screenshot(client_left, client_top, client_width, client_height)
 
     point_colors=[screenshot.getpixel(point) for point in points]
     # hyper_point_colors = [screenshot.getpixel(hyper_point) for hyper_point in hyper_points]
-    print(point_colors)
+    point_colors_up1=[screenshot.getpixel((point[0], point[1] - 1)) for point in points]
+    point_colors_down1=[screenshot.getpixel((point[0], point[1] + 1)) for point in points]
+    point_colors_left1=[screenshot.getpixel((point[0] - 1, point[1])) for point in points]
+    point_colors_right1=[screenshot.getpixel((point[0] + 1, point[1])) for point in points]
 
-    # 使用 ImageDraw 在截图上绘制点
-    draw=ImageDraw.Draw(screenshot)
+    point_colors_up2=[screenshot.getpixel((point[0], point[1] - 2)) for point in points]
+    point_colors_down2=[screenshot.getpixel((point[0], point[1] + 2)) for point in points]
+    point_colors_left2=[screenshot.getpixel((point[0] - 2, point[1])) for point in points]
+    point_colors_right2=[screenshot.getpixel((point[0] + 2, point[1])) for point in points]
+    
 
-    # 绘制点（用红色和蓝色表示）
-    for point in points:
-        draw.ellipse(
-            (point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5), fill="red"
-        )
+    # # 使用 ImageDraw 在截图上绘制点
+    # draw=ImageDraw.Draw(screenshot)
 
-    # 显示截图
-    screenshot.show()
+    # # 绘制点（用红色和蓝色表示）
+    # for point in points:
+    #     draw.ellipse(
+    #         (point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5), fill="red"
+    #     )
 
-    exit()
+    # # 显示截图
+    # screenshot.show()
+
+    # exit()
 
 
 def is_window_on_top(window):
