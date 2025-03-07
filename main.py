@@ -3,9 +3,9 @@ import ctypes
 ctypes.windll.user32.SetProcessDpiAwarenessContext(-4)
 
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget,
-                           QComboBox, QPushButton, QHBoxLayout, QMessageBox, QSizePolicy)
+                           QComboBox, QPushButton, QHBoxLayout, QMessageBox, QSizePolicy, QSpinBox)
 from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIntValidator
 import sys
 # app = QApplication(sys.argv)
 # app.setAttribute(Qt.AA_EnableHighDpiScaling)  # 启用 Qt 的 DPI 适配
@@ -20,8 +20,12 @@ import win32ui
 from PIL import Image, ImageDraw
 from pynput import keyboard
 from pynput.keyboard import Controller, Key, KeyCode, Listener  # noqa: F401
+import requests
 
 from threading import Thread
+
+hold_th = 10
+LOCAL_VERSION = "2.0.2"
 
 def safeChangeToggleButton():
     QMetaObject.invokeMethod(overlay_window, "updateStatus", Qt.QueuedConnection)
@@ -128,6 +132,8 @@ class TransparentWindow(QMainWindow):
         QMessageBox.information(self, "Help", self.language_texts[self.language]["help"])
 
     def initUI(self):
+        global hold_th
+        global LOCAL_VERSION
         # 设置窗口标志
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |  # 窗口置顶
@@ -156,7 +162,7 @@ class TransparentWindow(QMainWindow):
         self.title_bar_layout.setContentsMargins(0, 0, 0, 0)  # 去除布局的边距
 
         # 标题标签
-        self.title_label = QLabel("HBR-AutoBeat V2.0.1")
+        self.title_label = QLabel("HBR-AutoBeat V{}".format(LOCAL_VERSION))
         self.title_label.setStyleSheet("""
             background-color: rgba(0, 0, 0, 150);
             color: white;
@@ -271,8 +277,22 @@ class TransparentWindow(QMainWindow):
         layout.addLayout(lang_layout)
         layout.addWidget(self.toggle_button)
         # layout.addWidget(self.help_label)
+        # 增加一个可点击上下箭头来设置其中值的输入框，数值和hold_th绑定，且只允许输入整型数字，且大于0小于100
+        hold_th_input = QSpinBox()
+        hold_th_input.setRange(0, 100)
+        hold_th_input.setValue(hold_th)
+        # 数值更新后同步到hold_th
+        hold_th_input.valueChanged.connect(self.setHoldTh)
+        # 同一排显示输入框的名称：Hold Threshold
+        hold_th_label = QLabel("Press Time: ")
+        # 设置背景颜色
+        hold_th_label.setStyleSheet("background-color: rgba(0, 0, 0, 150); color: white;")
+        
+        hold_th_layout = QHBoxLayout()
+        hold_th_layout.addWidget(hold_th_label)
+        hold_th_layout.addWidget(hold_th_input)
+        layout.addLayout(hold_th_layout)
         layout.addWidget(self.help_button)
-
         # # 增加一个测试按钮
         # test_button = QPushButton("Test")
         # test_button.setStyleSheet("""
@@ -293,6 +313,9 @@ class TransparentWindow(QMainWindow):
         self.initLanguageTexts()
         self.languageChanged(0)
 
+    def setHoldTh(self):
+        global hold_th
+        hold_th = int(self.sender().text())
 
     def initLanguageTexts(self):
         """初始化语言文本"""
@@ -300,7 +323,7 @@ class TransparentWindow(QMainWindow):
             "zh_CN": {
                 # "title": "HBR-AutoBeat",
                 "reposition": "重新识别游戏窗口",
-                "help": "'o' 激活，'p' 取消激活并暂停，直接点击上方按钮也能切换激活状态。\n\n激活后聚焦游戏内，按钮变绿，打歌开始。\n\n游戏窗口移动后先点击'重新识别游戏窗口'。\n\n使用前请先初始化设置，关闭按压线,再将按键大小设置为80%。",
+                "help": "'o' 激活，'p' 取消激活并暂停，直接点击上方按钮也能切换激活状态。\n\n激活后聚焦游戏内，按钮变绿，打歌开始。\n\n游戏窗口移动后先点击'重新识别游戏窗口'。\n\n使用前请先初始化设置，关闭按压线,再将按键大小设置为80%。\n\n若出现长按过早/过晚结束，请调整'Press Time'。",
                 "key_status": "按键状态",
                 "note_running_not_focus": "未激活，未聚焦",
                 "running_not_focus": "已激活，未聚焦",
@@ -310,7 +333,7 @@ class TransparentWindow(QMainWindow):
             "zh_TW": {
                 # "title": "HBR-AutoBeat",
                 "reposition": "重新識別遊戲窗口",
-                "help": "'o' 鍵啟用，'p' 鍵取消啟用並暫停，直接點擊上方按鈕也能切換激活狀態。\n\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n\n使用前請先初始化設置，關閉按壓線，再將按鍵大小設置為80%。",
+                "help": "'o' 鍵啟用，'p' 鍵取消啟用並暫停，直接點擊上方按鈕也能切換激活狀態。\n\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n\n使用前請先初始化設置，關閉按壓線，再將按鍵大小設置為80%。若發生長按過早或過晚結束的情況，\n\n請調整'Press Time'。",
                 "key_status": "按鍵狀態",
                 "note_running_not_focus": "未啟用，未聚焦",
                 "running_not_focus": "已啟用，未聚焦",
@@ -320,7 +343,7 @@ class TransparentWindow(QMainWindow):
             "ja_JP": {
                 # "title": "HBR-AutoBeat", 
                 "reposition": "ゲームウィンドウを再認識",  
-                "help": "'o'キーで有効化、'p'キーで無効化、そして一時停止します。上のボタンで状態を切り替えられます。\n\n有効化後、ゲーム内にフォーカスを合わせ、ボタンが緑色になったら開始します。\n\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n\n使用前に初期設定を行い、プレスラインを閉じる、ボタンサイズを80％に設定してください。",
+                "help": "'o'キーで有効化、'p'キーで無効化、そして一時停止します。上のボタンで状態を切り替えられます。\n\n有効化後、ゲーム内にフォーカスを合わせ、ボタンが緑色になったら開始します。\n\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n\n使用前に初期設定を行い、プレスラインを閉じる、ボタンサイズを80％に設定してください。\n\n長押しの終了が早すぎ・遅すぎなら「Press Time」調整してください。",
                 "key_status": "キーの状態",
                 "note_running_not_focus": "無効、フォーカスなし", 
                 "running_not_focus": "有効、フォーカスなし",  
@@ -330,7 +353,7 @@ class TransparentWindow(QMainWindow):
             "en_US": {
                 # "title": "HBR-AutoBeat",
                 "reposition": "Re-recognize game window",
-                "help": "Press 'o' to activate, press 'p' to deactivate and pause the game. Clicking the button above can also toggle the state. \n\nFocus on the game window after activation. Button turns green to start.\n\nIf the game window moves, click 'Re-recognize game window' first.\n\nPlease initialize settings first, then close the press line and set the button size to 80%.",
+                "help": "Press 'o' to activate, press 'p' to deactivate and pause the game. Clicking the button above can also toggle the state. \n\nFocus on the game window after activation. Button turns green to start.\n\nIf the game window moves, click 'Re-recognize game window' first.\n\nPlease initialize settings first, then close the press line and set the button size to 80%.\n\nIf long press ends too early/late, adjust 'Press Time'.",
                 "key_status": "Key Status",
                 "note_running_not_focus": "Not running, not focused",
                 "running_not_focus": "running, not focused",
@@ -543,6 +566,7 @@ def main():
         if (not running or not focus):
             time.sleep(0.1)
             continue
+
         client_left, client_top, _, _, y_value, min_x, max_x=overlay_window.getWindowInfo()
 
         # 满足条件，开始打歌
@@ -596,19 +620,45 @@ def main():
                 key_states[keys[i]] += 1
                 continue
 
-            if key_states[keys[i]] > 5 and (
+            if key_states[keys[i]] > hold_th and (
                 abs(color[0] - original_color[0]) > COLOR_TOLERANCE
                 or abs(color[1] - original_color[1]) > COLOR_TOLERANCE
                 or abs(color[2] - original_color[2]) > COLOR_TOLERANCE
             ):
                 keyboard.release(keys[i])
                 key_states[keys[i]]=0
-
                 continue
             # time.sleep(0.01)
 
+def check_for_updates():
+    global LOCAL_VERSION
+    GITHUB_API_URL = "https://api.github.com/repos/yujianke100/HBR-AutoBeat/releases/latest"
+    try:
+        response = requests.get(GITHUB_API_URL, timeout=2)
+        if response.status_code == 200:
+            latest_version = response.json().get("tag_name", "")
+            if latest_version and latest_version > LOCAL_VERSION:
+                # print(f"⚠ Discover a new version: {latest_version}")
+                # 弹出提示框，点击确认后打开浏览器到最新版本的下载页面，点击取消则不打开
+                app = QApplication(sys.argv)
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Information)
+                msg_box.setWindowTitle("New Version Found")
+                msg_box.setText(f"Latest version: {latest_version}\nLocal version: {LOCAL_VERSION} \nDo you want to update?")
+                msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+                ret = msg_box.exec_()
+                if ret == QMessageBox.Ok:
+                    import webbrowser
+                    webbrowser.open("https://github.com/yujianke100/HBR-AutoBeat/releases/latest")
+                    sys.exit()
+
+    except requests.RequestException:
+        pass  # 2 秒内无法访问则跳过
+
 # 在主脚本中使用：
 if __name__ == "__main__":
+    check_for_updates()
     points=[(325, 810), (575, 810), (825, 810),
              (1075, 810), (1325, 810), (1575, 810)]
     app, overlay_window=create_overlay()
