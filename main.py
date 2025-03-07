@@ -25,7 +25,7 @@ import requests
 from threading import Thread
 
 hold_th = 10
-LOCAL_VERSION = "2.0.2"
+LOCAL_VERSION = "2.0.0"
 
 def safeChangeToggleButton():
     QMetaObject.invokeMethod(overlay_window, "updateStatus", Qt.QueuedConnection)
@@ -162,7 +162,7 @@ class TransparentWindow(QMainWindow):
         self.title_bar_layout.setContentsMargins(0, 0, 0, 0)  # 去除布局的边距
 
         # 标题标签
-        self.title_label = QLabel("HBR-AutoBeat V{}".format(LOCAL_VERSION))
+        self.title_label = QLabel("HBR-AutoBeat {}".format(LOCAL_VERSION))
         self.title_label.setStyleSheet("""
             background-color: rgba(0, 0, 0, 150);
             color: white;
