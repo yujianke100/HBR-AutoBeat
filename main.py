@@ -25,7 +25,7 @@ import requests
 from threading import Thread
 
 hold_th = 10
-LOCAL_VERSION = "2.0.0"
+LOCAL_VERSION = "2.0.2"
 
 def safeChangeToggleButton():
     QMetaObject.invokeMethod(overlay_window, "updateStatus", Qt.QueuedConnection)
