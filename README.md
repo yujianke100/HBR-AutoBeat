@@ -1,4 +1,6 @@
 # HBR-AutoBeat
+v2.1.0
+
 An automated rhythm game player script for Heaven Burns Red
 
 ![image](figs/screenshot.png)
