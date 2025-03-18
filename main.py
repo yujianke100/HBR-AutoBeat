@@ -25,18 +25,45 @@ import requests
 from threading import Thread
 
 hold_th = 10
-LOCAL_VERSION = "2.0.2"
+single_run_time = 0.015
+low_performance_state = False
+LOCAL_VERSION = "v2.1.0"
 
 def safeChangeToggleButton():
     QMetaObject.invokeMethod(overlay_window, "updateStatus", Qt.QueuedConnection)
 
-def init(window_title, test_flag=False):
+# 定义一个函数，主动deactivate标题为HeavenBurnsRed的窗口
+def deactivate_window(window_title="HeavenBurnsRed"):
     global window  # 声明为全局变量，以便在 on_press 中访问
     all_windows = gw.getAllTitles()
     browser_window_titles = [
         title for title in all_windows if window_title in title]
     if browser_window_titles == []:
-        app = QApplication(sys.argv)
+        # app = QApplication(sys.argv)
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setWindowTitle("Window Not Found")
+        msg_box.setText("HBR was not found.")
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.setWindowFlags(msg_box.windowFlags() |
+                               Qt.WindowStaysOnTopHint)
+        msg_box.exec_()
+        sys.exit()
+
+    chosen_browser_title = browser_window_titles[0]
+    window = gw.getWindowsWithTitle(chosen_browser_title)[0]
+    # 最小化窗口
+    window.minimize()
+    time.sleep(0.5)
+
+# 定义一个函数，重新activate标题为HeavenBurnsRed的窗口
+def reactivate_window(window_title):
+    global window  # 声明为全局变量，以便在 on_press 中访问
+    all_windows = gw.getAllTitles()
+    browser_window_titles = [
+        title for title in all_windows if window_title in title]
+    if browser_window_titles == []:
+        # app = QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
         msg_box.setWindowTitle("Window Not Found")
@@ -52,6 +79,31 @@ def init(window_title, test_flag=False):
     window.restore()
     window.activate()
     time.sleep(0.5)
+    
+
+def init(window_title, test_flag=False):
+    global window  # 声明为全局变量，以便在 on_press 中访问
+    reactivate_window(window_title)
+    # all_windows = gw.getAllTitles()
+    # browser_window_titles = [
+    #     title for title in all_windows if window_title in title]
+    # if browser_window_titles == []:
+    #     app = QApplication(sys.argv)
+    #     msg_box = QMessageBox()
+    #     msg_box.setIcon(QMessageBox.Warning)
+    #     msg_box.setWindowTitle("Window Not Found")
+    #     msg_box.setText("HBR was not found.")
+    #     msg_box.setStandardButtons(QMessageBox.Ok)
+    #     msg_box.setWindowFlags(msg_box.windowFlags() |
+    #                            Qt.WindowStaysOnTopHint)
+    #     msg_box.exec_()
+    #     sys.exit()
+
+    # chosen_browser_title = browser_window_titles[0]
+    # window = gw.getWindowsWithTitle(chosen_browser_title)[0]
+    # window.restore()
+    # window.activate()
+    # time.sleep(0.5)
 
     hwnd = window._hWnd
 
@@ -117,7 +169,8 @@ class TransparentWindow(QMainWindow):
         self.client_left, self.client_top, self.client_width, self.client_height, self.y_value, self.min_x, self.max_x = init(
             "HeavenBurnsRed", test_flag=False)
         # 重新设置窗口位置
-        self.setGeometry(self.client_left + int(1920/3), self.client_top, 10, 10)
+        # self.setGeometry(self.client_left + int(1920/3), self.client_top, 10, 10)
+        self.setGeometry(self.client_left, self.client_top+150, 10, 10)
         
     def exitApplication(self):
         sys.exit()
@@ -323,7 +376,7 @@ class TransparentWindow(QMainWindow):
             "zh_CN": {
                 # "title": "HBR-AutoBeat",
                 "reposition": "重新识别游戏窗口",
-                "help": "'o' 激活，'p' 取消激活并暂停，直接点击上方按钮也能切换激活状态。\n\n激活后聚焦游戏内，按钮变绿，打歌开始。\n\n游戏窗口移动后先点击'重新识别游戏窗口'。\n\n使用前请先初始化设置，关闭按压线,再将按键大小设置为80%。\n\n若出现长按过早/过晚结束，请调整'Press Time'。",
+                "help": "'o' 激活，'p' 取消激活并暂停，直接点击上方按钮也能切换激活状态。\n\n激活后聚焦游戏内，按钮变绿，打歌开始。\n\n游戏窗口移动后先点击'重新识别游戏窗口'。\n\n使用前请先初始化设置，关闭按压线,再将按键大小设置为80%。\n\n若出现长按过早/过晚结束，请调整'Press Time'。\n\n若显示'Low Performance'，说明设备性能较差，打歌时会出现来不及反应的情况。",
                 "key_status": "按键状态",
                 "note_running_not_focus": "未激活，未聚焦",
                 "running_not_focus": "已激活，未聚焦",
@@ -333,7 +386,7 @@ class TransparentWindow(QMainWindow):
             "zh_TW": {
                 # "title": "HBR-AutoBeat",
                 "reposition": "重新識別遊戲窗口",
-                "help": "'o' 鍵啟用，'p' 鍵取消啟用並暫停，直接點擊上方按鈕也能切換激活狀態。\n\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n\n使用前請先初始化設置，關閉按壓線，再將按鍵大小設置為80%。若發生長按過早或過晚結束的情況，\n\n請調整'Press Time'。",
+                "help": "'o' 鍵啟用，'p' 鍵取消啟用並暫停，直接點擊上方按鈕也能切換激活狀態。\n\n啟用後聚焦遊戲內，按鈕變綠，打歌開始。\n\n移動遊戲窗口後請先點擊'重新識別遊戲窗口'。\n\n使用前請先初始化設置，關閉按壓線，再將按鍵大小設置為80%。若發生長按過早或過晚結束的情況，\n\n請調整'Press Time'。\n\n若显示「Low Performance」，代表装置效能较低，游玩节奏游戏时可能会反应不及。",
                 "key_status": "按鍵狀態",
                 "note_running_not_focus": "未啟用，未聚焦",
                 "running_not_focus": "已啟用，未聚焦",
@@ -343,7 +396,7 @@ class TransparentWindow(QMainWindow):
             "ja_JP": {
                 # "title": "HBR-AutoBeat", 
                 "reposition": "ゲームウィンドウを再認識",  
-                "help": "'o'キーで有効化、'p'キーで無効化、そして一時停止します。上のボタンで状態を切り替えられます。\n\n有効化後、ゲーム内にフォーカスを合わせ、ボタンが緑色になったら開始します。\n\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n\n使用前に初期設定を行い、プレスラインを閉じる、ボタンサイズを80％に設定してください。\n\n長押しの終了が早すぎ・遅すぎなら「Press Time」調整してください。",
+                "help": "'o'キーで有効化、'p'キーで無効化、そして一時停止します。上のボタンで状態を切り替えられます。\n\n有効化後、ゲーム内にフォーカスを合わせ、ボタンが緑色になったら開始します。\n\nウィンドウ移動後は「ゲームウィンドウを再認識」をクリックしてください。\n\n使用前に初期設定を行い、プレスラインを閉じる、ボタンサイズを80％に設定してください。\n\n長押しの終了が早すぎ・遅すぎなら「Press Time」調整してください。\n\n「Low Performance」と表示された場合、デバイスの性能が低く、リズムゲームの反応が遅れる可能性があります。",
                 "key_status": "キーの状態",
                 "note_running_not_focus": "無効、フォーカスなし", 
                 "running_not_focus": "有効、フォーカスなし",  
@@ -353,7 +406,7 @@ class TransparentWindow(QMainWindow):
             "en_US": {
                 # "title": "HBR-AutoBeat",
                 "reposition": "Re-recognize game window",
-                "help": "Press 'o' to activate, press 'p' to deactivate and pause the game. Clicking the button above can also toggle the state. \n\nFocus on the game window after activation. Button turns green to start.\n\nIf the game window moves, click 'Re-recognize game window' first.\n\nPlease initialize settings first, then close the press line and set the button size to 80%.\n\nIf long press ends too early/late, adjust 'Press Time'.",
+                "help": "Press 'o' to activate, press 'p' to deactivate and pause the game. Clicking the button above can also toggle the state. \n\nFocus on the game window after activation. Button turns green to start.\n\nIf the game window moves, click 'Re-recognize game window' first.\n\nPlease initialize settings first, then close the press line and set the button size to 80%.\n\nIf long press ends too early/late, adjust 'Press Time'.\n\n'Low Performance' indicates low device performance, which may cause delayed responses in rhythm games.",
                 "key_status": "Key Status",
                 "note_running_not_focus": "Not running, not focused",
                 "running_not_focus": "running, not focused",
@@ -387,22 +440,31 @@ class TransparentWindow(QMainWindow):
         else:
             self.changeLanguage(language_map.get(index, "en_US"))
         
-
     def changeToggleButton(self):
         global running
         global focus
+        global low_performance_state
         # 如果running不存在，等待到running被定义
         if (self.btnPosition[0] == running and self.btnPosition[1] == focus):
             return
         texts = self.language_texts.get(self.language, self.language_texts["en_US"])
+        
         if(running and focus):
-            self.toggle_button.setText(texts["running_focus"])
+            button_text = texts["running_focus"]
+            # self.toggle_button.setText(texts["running_focus"])
         elif(running and not focus):
-            self.toggle_button.setText(texts["running_not_focus"])
+            button_text = texts["running_not_focus"]
+            # self.toggle_button.setText(texts["running_not_focus"])
         elif(not running and focus):
-            self.toggle_button.setText(texts["not_running_focus"])
+            button_text = texts["not_running_focus"]
+            # self.toggle_button.setText(texts["not_running_focus"])
         else:
-            self.toggle_button.setText(texts["note_running_not_focus"])
+            button_text = texts["note_running_not_focus"]
+            # self.toggle_button.setText(texts["note_running_not_focus"])
+        if(low_performance_state):
+            button_text += " (Low Performance)"
+            
+        self.toggle_button.setText(button_text)
         if(running and focus):
             self.toggle_button.setStyleSheet("""
                 QPushButton {
@@ -551,7 +613,9 @@ def main():
     global running
     global focus
     global window
+    global low_performance_state
     while True:
+        start_time = time.time()
         now_focus=is_window_on_top(window)
         if (now_focus and not focus):
             focus=True
@@ -629,6 +693,12 @@ def main():
                 key_states[keys[i]]=0
                 continue
             # time.sleep(0.01)
+        running_time = time.time() - start_time
+        if running_time < single_run_time:
+            time.sleep(single_run_time - running_time)
+        elif low_performance_state == False and running_time > single_run_time * 2:
+            low_performance_state = True
+            deactivate_window()
 
 def check_for_updates():
     global LOCAL_VERSION
