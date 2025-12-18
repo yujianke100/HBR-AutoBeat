@@ -91,7 +91,7 @@ def on_release(key):
 def main(window_title, test_flag=False):
     global running
     global window  # 声明为全局变量，以便在 on_press 中访问
-    global force_run
+    global force_run  # noqa: F824
     all_windows = gw.getAllTitles()
     browser_window_titles = [title for title in all_windows if window_title in title]
     if browser_window_titles == []:
@@ -104,7 +104,6 @@ def main(window_title, test_flag=False):
     time.sleep(0.5)
 
     hwnd = window._hWnd
-    
 
     client_rect = win32gui.GetClientRect(hwnd)
     client_left, client_top = win32gui.ClientToScreen(
@@ -121,8 +120,10 @@ def main(window_title, test_flag=False):
         print("窗口分辨率：", client_width, client_height)
         test(client_left, client_top, client_width, client_height)
 
-    if(client_width != 1920 or client_height != 1080):
-        print(f"窗口分辨率不匹配。需要设置为1920x1080，当前识别为{client_width}x{client_height}，请重新在游戏内设置分辨率。按回车退出。")
+    if client_width != 1920 or client_height != 1080:
+        print(
+            f"窗口分辨率不匹配。需要设置为1920x1080，当前识别为{client_width}x{client_height}，请重新在游戏内设置分辨率。按回车退出。"
+        )
         input()
         exit()
 
@@ -136,7 +137,7 @@ def main(window_title, test_flag=False):
     while True:
         if not is_window_on_top(window):
             if not closed_printed:
-                if(force_run != 'y'):
+                if force_run != "y":
                     print("未聚焦！聚焦后按 'o' 键开始打歌，按 'p' 键停止")
                 else:
                     print("未聚焦！已强制运行，聚焦后继续打歌")
@@ -146,8 +147,8 @@ def main(window_title, test_flag=False):
             continue
         else:
             if closed_printed:
-                print("已聚焦！", end=' ')  # 窗口重新聚焦时打印“已聚焦”
-                if(force_run == 'y'):
+                print("已聚焦！", end=" ")  # 窗口重新聚焦时打印“已聚焦”
+                if force_run == "y":
                     print("已强制运行")
                     running = True
                 elif running:
@@ -223,7 +224,9 @@ def main(window_title, test_flag=False):
 
 
 if __name__ == "__main__":
-    force_run = input("是否强制运行？（y/n）,默认n。如强制运行，请先打开‘演唱会开始’界面，然后输入y：")
+    force_run = input(
+        "是否强制运行？（y/n）,默认n。如强制运行，请先打开‘演唱会开始’界面，然后输入y："
+    )
 
     listener = Listener(on_press=on_press, on_release=on_release)
     listener.start()
