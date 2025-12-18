@@ -10,9 +10,7 @@ from pynput.keyboard import Controller, Key, KeyCode, Listener  # noqa: F401
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-from core.engine import AutoSongEngine
-from ui.auto_song import attach as attach_auto_song
-from ui.main_window import create_overlay
+# engine and overlay are created when user starts play from control window
 
 # runtime globals
 hold_th = 10
@@ -62,15 +60,12 @@ def check_for_updates():
 if __name__ == "__main__":
     check_for_updates()
     points = [(325, 810), (575, 810), (825, 810), (1075, 810), (1325, 810), (1575, 810)]
-    app, overlay_window = create_overlay(points, LOCAL_VERSION)
 
-    # create and start the auto-song engine, attach to UI
-    engine = AutoSongEngine(overlay_window, points, hold_th, single_run_time)
-    attach_auto_song(engine, overlay_window)
+    app = QApplication([])
+    from ui.main_window import ControlWindow
 
-    # start keyboard listener bound to engine handlers
-    listener = Listener(on_press=engine.on_press, on_release=engine.on_release)
-    listener.start()
+    control = ControlWindow(points, LOCAL_VERSION, app=app)
+    control.show()
 
     # 启动Qt事件循环
     sys.exit(app.exec_())
