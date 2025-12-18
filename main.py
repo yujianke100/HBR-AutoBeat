@@ -57,8 +57,10 @@ def deactivate_window(window_title="HeavenBurnsRed"):
         # app = QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
-        msg_box.setWindowTitle("Window Not Found")
-        msg_box.setText("HBR was not found.")
+        from i18n import t
+
+        msg_box.setWindowTitle(t("window_not_found", "Window Not Found"))
+        msg_box.setText(t("hbr_not_found", "HBR was not found."))
         msg_box.setStandardButtons(QMessageBox.Ok)
         msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
         msg_box.exec_()
@@ -80,8 +82,10 @@ def reactivate_window(window_title):
         # app = QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
-        msg_box.setWindowTitle("Window Not Found")
-        msg_box.setText("HBR was not found.")
+        from i18n import t
+
+        msg_box.setWindowTitle(t("window_not_found", "Window Not Found"))
+        msg_box.setText(t("hbr_not_found", "HBR was not found."))
         msg_box.setStandardButtons(QMessageBox.Ok)
         msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
         msg_box.exec_()
@@ -138,11 +142,16 @@ def init(window_title, test_flag=False):
         QApplication(sys.argv)  # 创建 QApplication 实例
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)  # 设置图标为警告类型
-        msg_box.setWindowTitle("Resolution Error")
+        from i18n import t
+
+        msg_box.setWindowTitle(t("resolution_error", "Resolution Error"))
         msg = (
-            "Window resolution does not match.\n"
-            f"It needs to be set to 1920x1080, currently recognized as {client_width}x{client_height}.\n"
-            "Please reset the resolution in the game."
+            t("resolution_mismatch", "Window resolution does not match.\n")
+            + t(
+                "resolution_hint",
+                f"It needs to be set to 1920x1080, currently recognized as {client_width}x{client_height}.\n",
+            ).format(client_width=client_width, client_height=client_height)
+            + t("resolution_reset", "Please reset the resolution in the game.")
         )
         msg_box.setText(msg)
         msg_box.setStandardButtons(QMessageBox.Ok)
@@ -250,7 +259,11 @@ class TransparentWindow(QMainWindow):
         self.title_bar_layout.setContentsMargins(0, 0, 0, 0)  # 去除布局的边距
 
         # 标题标签
-        self.title_label = QLabel("HBR-AutoBeat {}".format(LOCAL_VERSION))
+        from i18n import t
+
+        self.title_label = QLabel(
+            t("app_title", "HBR-AutoBeat {version}").format(version=LOCAL_VERSION)
+        )
         self.title_label.setStyleSheet(
             """
             background-color: rgba(0, 0, 0, 150);
@@ -264,7 +277,7 @@ class TransparentWindow(QMainWindow):
         )  # 扩展标题占满剩余空间
 
         # "X" 按钮，用于退出程序
-        self.close_button = QPushButton("X")
+        self.close_button = QPushButton(t("close_button", "X"))
         self.close_button.setStyleSheet(
             """
             QPushButton {
@@ -294,7 +307,9 @@ class TransparentWindow(QMainWindow):
         )  # 设置标题栏背景颜色
 
         # 增加一个按钮，用于重新识别窗口位置
-        self.reposition_button = QPushButton("")
+        self.reposition_button = QPushButton(
+            t("btn_recognize_window", "Recognize Window")
+        )
         self.reposition_button.setStyleSheet(
             """
             QPushButton {
@@ -313,7 +328,13 @@ class TransparentWindow(QMainWindow):
 
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(
-            [" (Language)", " 简体中文", " 繁体中文", " 日本語", " English"]
+            [
+                t("language_label", "(Language)"),
+                t("language_zh_cn", "简体中文"),
+                t("language_zh_tw", "繁体中文"),
+                t("language_ja_jp", "日本語"),
+                t("language_en_us", "English"),
+            ]
         )
         self.lang_combo.setStyleSheet(
             """
@@ -331,7 +352,7 @@ class TransparentWindow(QMainWindow):
         self.lang_combo.currentIndexChanged.connect(self.languageChanged)
 
         # 创建启动/停止按钮
-        self.toggle_button = QPushButton("")
+        self.toggle_button = QPushButton(t("btn_auto_song", "Auto Song Play"))
         self.toggle_button.setStyleSheet(
             """
             QPushButton {
@@ -359,7 +380,7 @@ class TransparentWindow(QMainWindow):
         #     }
         # """)
         # 增加用于隐藏/显示说明的按钮
-        self.help_button = QPushButton("Help")
+        self.help_button = QPushButton(t("help_button", "Help"))
         self.help_button.setStyleSheet(
             """
             QPushButton {
@@ -390,7 +411,7 @@ class TransparentWindow(QMainWindow):
         # 数值更新后同步到hold_th
         hold_th_input.valueChanged.connect(self.setHoldTh)
         # 同一排显示输入框的名称：Hold Threshold
-        hold_th_label = QLabel("Press Time: ")
+        hold_th_label = QLabel(t("press_time_label", "Press Time: "))
         # 设置背景颜色
         hold_th_label.setStyleSheet(
             "background-color: rgba(0, 0, 0, 150); color: white;"

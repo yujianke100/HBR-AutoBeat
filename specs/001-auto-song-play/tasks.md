@@ -15,8 +15,8 @@ description: "Implementation tasks for feature 001-auto-song-play"
 
 ## Phase 2: Localization & Code Organization (P0)
 
-- [ ] T002-1 Create `i18n/` directory with `zh-CN.yml` and `en-US.yml` and extract all UI strings into these files. (files: `i18n/*.yml`)
-- [ ] T002-2 Add small `i18n` loader module (`src/i18n.py` or `i18n/__init__.py`) to select language at runtime and provide `t(key)` helper.
+ - [X] T002-1 Create `i18n/` directory with `zh-CN.yml` and `en-US.yml` and extract all UI strings into these files. (files: `i18n/*.yml`)
+ - [X] T002-2 Add small `i18n` loader module (`src/i18n.py` or `i18n/__init__.py`) to select language at runtime and provide `t(key)` helper.
 
 ## Phase 3: UI Refactor - Main/Feature Screens (P0)
 
