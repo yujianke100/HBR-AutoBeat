@@ -7,6 +7,8 @@ This script locates `.venv\Scripts\Activate.ps1` and invokes it in the current s
 If running in PowerShell Core (`pwsh`), it will try to source the correct Activate script.
 #>
 
+conda deactivate
+
 Set-StrictMode -Version Latest
 
 $venvPath = Join-Path $PSScriptRoot "..\.venv\Scripts\Activate.ps1"

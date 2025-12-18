@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 # app = QApplication(sys.argv)
 # app.setAttribute(Qt.AA_EnableHighDpiScaling)  # 启用 Qt 的 DPI 适配
@@ -8,15 +9,18 @@ import requests
 from pynput import keyboard  # noqa: F401
 from pynput.keyboard import Controller, Key, KeyCode, Listener  # noqa: F401
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-# engine and overlay are created when user starts play from control window
+from core.engine import AutoSongEngine
+from ui.auto_song import attach as attach_auto_song
+from ui.main_window import ControlWindow, create_overlay
 
 # runtime globals
 hold_th = 10
 single_run_time = 0.015
 low_performance_state = False
-LOCAL_VERSION = "v2.1.0"
+LOCAL_VERSION = "v3.0.0"
 window = None
 running = False
 focus = None
@@ -58,13 +62,76 @@ def check_for_updates():
 
 # 在主脚本中使用：
 if __name__ == "__main__":
+    # Set DPI attributes BEFORE creating QApplication
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+    # create QApplication after setting attributes
+    app = QApplication(sys.argv)
+
+    # Set Windows AppUserModelID for proper taskbar icon
+    try:
+        import ctypes
+
+        myappid = "yujianke100.HBR-AutoBeat.v3.0.0"
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    except Exception:
+        pass
+
+    # Set application icon
+    icon_path = Path(__file__).resolve().parent / "icon" / "favicon.ico"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
+
     check_for_updates()
-    points = [(325, 810), (575, 810), (825, 810), (1075, 810), (1325, 810), (1575, 810)]
 
-    app = QApplication([])
-    from ui.main_window import ControlWindow
+    points = [
+        (325, 810),
+        (575, 810),
+        (825, 810),
+        (1075, 810),
+        (1325, 810),
+        (1575, 810),
+    ]
 
-    control = ControlWindow(points, LOCAL_VERSION, app=app)
+    control = ControlWindow(local_version=LOCAL_VERSION)
+
+    # start feature when user clicks Start in control window
+    def start_feature():
+        control.hide()
+        overlay_window = create_overlay(points, LOCAL_VERSION)
+        overlay_window.language = control.language
+        overlay_window.changeLanguage(control.language)
+        # Re-position window after creation to handle DPI scaling properly
+        overlay_window.repositionWindow()
+        overlay_window.show()
+
+        engine = AutoSongEngine(overlay_window, points, hold_th, single_run_time)
+        attach_auto_song(engine, overlay_window)
+
+        # start keyboard listener bound to engine handlers
+        listener = Listener(on_press=engine.on_press, on_release=engine.on_release)
+        listener.start()
+
+        # store refs to avoid GC
+        globals()["overlay_window"] = overlay_window
+        globals()["engine"] = engine
+        globals()["listener"] = listener
+
+        def _on_return():
+            try:
+                engine.running = False
+            except Exception:
+                pass
+            try:
+                overlay_window.close()
+            except Exception:
+                pass
+            control.show()
+
+        overlay_window.set_return_callback(_on_return)
+
+    control.set_start_callback(start_feature)
     control.show()
 
     # 启动Qt事件循环
