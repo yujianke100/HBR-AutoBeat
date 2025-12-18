@@ -17,12 +17,11 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-import core.window_helpers as window_helpers
 from core.window_helpers import init
 from i18n import t
 
 
-class OverlayWindow(QMainWindow):
+class TransparentWindow(QMainWindow):
     def __init__(self, points, local_version=None):
         super().__init__()
         (
@@ -44,6 +43,7 @@ class OverlayWindow(QMainWindow):
         self.language = "zh-CN"
         self.btnPosition = [None, None]
         self.local_version = local_version or "v0.0.0"
+        self.in_play_mode = False
         self.initUI()
 
     def getWindowInfo(self) -> Tuple[int, int, int, int, int, int, int]:
@@ -193,6 +193,8 @@ class OverlayWindow(QMainWindow):
             }
         """
         )
+        # intercept toggle clicks to switch views then start/stop engine
+        self.toggle_button.clicked.connect(self.on_toggle_clicked)
 
         self.help_button = QPushButton(t("help_button", self.language))
         self.help_button.setStyleSheet(
@@ -232,6 +234,14 @@ class OverlayWindow(QMainWindow):
         hold_th_layout.addWidget(self.hold_th_input)
         layout.addLayout(hold_th_layout)
         layout.addWidget(self.help_button)
+
+        # collect control widgets so we can hide/show when entering play mode
+        self._control_widgets = [
+            self.reposition_button,
+            self.lang_combo,
+            self.hold_th_input,
+            self.help_button,
+        ]
 
         # 初始化语言显示为默认语言（不改变下拉显示）
         self.changeLanguage("zh-CN")
@@ -327,6 +337,65 @@ class OverlayWindow(QMainWindow):
         time.sleep(0.1)
         self.btnPosition[0] = running
         self.btnPosition[1] = focus
+        # if we are in play mode but engine stopped, exit play mode
+        if self.in_play_mode and not running:
+            try:
+                self.exit_play_mode()
+            except Exception:
+                pass
+
+    def on_toggle_clicked(self):
+        # when clicked in control mode, enter play view first
+        if not self.in_play_mode:
+            self.enter_play_mode()
+
+        # call engine toggle if attached, else fallback to old behavior
+        if hasattr(self, "engine") and self.engine is not None:
+            try:
+                self.engine.toggle_running()
+                running = getattr(self.engine, "running", False)
+            except Exception:
+                running = False
+        else:
+            # fallback to legacy toggle
+            self.toggleRunning()
+            running = globals().get("running", False)
+
+        # if toggled off, return to control view
+        if not running:
+            self.exit_play_mode()
+
+    def enter_play_mode(self):
+        self.in_play_mode = True
+        for w in getattr(self, "_control_widgets", []):
+            try:
+                w.hide()
+            except Exception:
+                pass
+        # adjust title to indicate play mode
+        try:
+            self.title_label.setText(
+                t("app_title", self.language).format(version=self.local_version)
+                + " - "
+                + t("btn_auto_song", self.language)
+            )
+        except Exception:
+            pass
+
+    def exit_play_mode(self):
+        self.in_play_mode = False
+        for w in getattr(self, "_control_widgets", []):
+            try:
+                w.show()
+            except Exception:
+                pass
+        # restore title
+        try:
+            self.title_label.setText(
+                t("app_title", self.language).format(version=self.local_version)
+            )
+        except Exception:
+            pass
 
     def toggleRunning(self):
         global running
@@ -349,112 +418,8 @@ class OverlayWindow(QMainWindow):
             event.accept()
 
 
-class ControlWindow(QMainWindow):
-    def __init__(self, points, local_version=None, app=None):
-        super().__init__()
-        self.points = points
-        self.local_version = local_version or "v0.0.0"
-        self.app = app
-        self.engine = None
-        self.initUI()
-
-    def initUI(self):
-        # Build a compact control panel (recognize + language + start)
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
-        QApplication.setFont(QFont("Microsoft YaHei", 12))
-
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
-
-        top_layout = QHBoxLayout()
-        self.reposition_button = QPushButton(t("btn_recognize_window", "zh-CN"))
-        self.reposition_button.clicked.connect(self.repositionWindow)
-        top_layout.addWidget(self.reposition_button)
-
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(
-            [
-                t("language_label", "en-US"),
-                t("language_zh_cn", "zh-CN"),
-                t("language_zh_tw", "zh-TW"),
-                t("language_ja_jp", "ja-JP"),
-                t("language_en_us", "en-US"),
-            ]
-        )
-        self.lang_combo.setCurrentIndex(0)
-        self.lang_combo.currentIndexChanged.connect(self.languageChanged)
-        top_layout.addWidget(self.lang_combo)
-
-        layout.addLayout(top_layout)
-
-        # Controls
-        self.hold_th_input = QSpinBox()
-        self.hold_th_input.setRange(0, 100)
-        self.hold_th_input.setValue(10)
-
-        controls_layout = QHBoxLayout()
-        controls_layout.addWidget(QLabel(t("press_time_label", "en-US")))
-        controls_layout.addWidget(self.hold_th_input)
-
-        self.start_button = QPushButton(t("btn_auto_song", "zh-CN"))
-        self.start_button.clicked.connect(self.start_play)
-        controls_layout.addWidget(self.start_button)
-
-        self.help_button = QPushButton(t("help_button", "zh-CN"))
-        self.help_button.clicked.connect(self.toggleHelp)
-        controls_layout.addWidget(self.help_button)
-
-        layout.addLayout(controls_layout)
-
-    def toggleHelp(self):
-        QMessageBox.information(self, t("help_button", "zh-CN"), t("help", "zh-CN"))
-
-    def repositionWindow(self):
-        # call window_helpers.init to validate game window and positions
-        try:
-            window_helpers.init("HeavenBurnsRed", self.points)
-            QMessageBox.information(
-                self,
-                t("btn_recognize_window", "zh-CN"),
-                t("btn_recognize_window", "zh-CN"),
-            )
-        except Exception:
-            QMessageBox.warning(
-                self, t("window_not_found", "zh-CN"), t("hbr_not_found", "zh-CN")
-            )
-
-    def languageChanged(self, index):
-        if index == 0:
-            return
-        mapping = {1: "zh-CN", 2: "zh-TW", 3: "ja-JP", 4: "en-US"}
-        lang = mapping.get(index, "en-US")
-        # update labels
-        self.start_button.setText(t("btn_auto_song", lang))
-        self.help_button.setText(t("help_button", lang))
-
-    def start_play(self):
-        # create overlay and engine, attach and start
-        app = QApplication.instance() or QApplication([])
-        app_obj, overlay = create_overlay(self.points, self.local_version, app)
-        overlay.show()
-        from core.engine import AutoSongEngine
-        from ui.auto_song import attach as attach_auto_song
-
-        engine = AutoSongEngine(
-            overlay, self.points, hold_th=int(self.hold_th_input.value())
-        )
-        attach_auto_song(engine, overlay)
-        # start keyboard listener
-        from pynput.keyboard import Listener
-
-        listener = Listener(on_press=engine.on_press, on_release=engine.on_release)
-        listener.start()
-
-
-def create_overlay(points, local_version=None, app=None):
-    # create overlay window without creating a new QApplication if one exists
-    if app is None:
-        app = QApplication([])
-    window = OverlayWindow(points, local_version=local_version)
+def create_overlay(points, local_version=None):
+    app = QApplication([])
+    window = TransparentWindow(points, local_version=local_version)
+    window.show()
     return app, window
