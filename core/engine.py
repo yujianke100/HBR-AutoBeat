@@ -57,6 +57,9 @@ class AutoSongEngine:
         self.focus = False
         self.low_performance_state = False
         self._thread = None
+        # debounce for slow-run detection to avoid spurious deactivation on quick focus switches
+        self._slow_count = 0
+        self._slow_threshold = 3
         self.window_title = "HeavenBurnsRed"
 
     def is_window_on_top(self):
@@ -195,13 +198,26 @@ class AutoSongEngine:
 
             running_time = time.time() - start_time
             if running_time < self.single_run_time:
+                # fast enough, reset slow counter
+                self._slow_count = 0
                 time.sleep(self.single_run_time - running_time)
-            elif (
-                not self.low_performance_state
-                and running_time > self.single_run_time * 2
-            ):
-                self.low_performance_state = True
-                window_helpers.deactivate_window()
+            elif running_time > self.single_run_time * 2:
+                # increment slow counter; only act after threshold consecutive slow runs
+                self._slow_count += 1
+                if (
+                    not self.low_performance_state
+                    and self._slow_count >= self._slow_threshold
+                    and self.running
+                    and self.focus
+                ):
+                    self.low_performance_state = True
+                    # minimize game window to reduce load
+                    window_helpers.deactivate_window()
+                    # after deactivation, update focus state and notify UI
+                    self.focus = False
+                    self.safeChangeToggleButton()
+                # small sleep to avoid busy loop
+                time.sleep(0.01)
 
 
 __all__ = ["AutoSongEngine"]
