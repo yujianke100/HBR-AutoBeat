@@ -22,7 +22,7 @@ from i18n import t
 
 
 class TransparentWindow(QMainWindow):
-    def __init__(self, points):
+    def __init__(self, points, local_version=None):
         super().__init__()
         (
             client_left,
@@ -42,6 +42,7 @@ class TransparentWindow(QMainWindow):
         self.max_x = max_x
         self.language = "zh-CN"
         self.btnPosition = [None, None]
+        self.local_version = local_version or "v0.0.0"
         self.initUI()
 
     def getWindowInfo(self) -> Tuple[int, int, int, int, int, int, int]:
@@ -96,7 +97,7 @@ class TransparentWindow(QMainWindow):
         self.title_bar_layout.setContentsMargins(0, 0, 0, 0)
 
         self.title_label = QLabel(
-            t("app_title", self.language).format(version=LOCAL_VERSION)
+            t("app_title", self.language).format(version=self.local_version)
         )
         self.title_label.setStyleSheet(
             """
@@ -152,13 +153,15 @@ class TransparentWindow(QMainWindow):
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(
             [
-                t("language_label", self.language),
-                t("language_zh_cn", self.language),
-                t("language_zh_tw", self.language),
-                t("language_ja_jp", self.language),
-                t("language_en_us", self.language),
+                t("language_label", "en-US"),
+                t("language_zh_cn", "zh-CN"),
+                t("language_zh_tw", "zh-TW"),
+                t("language_ja_jp", "ja-JP"),
+                t("language_en_us", "en-US"),
             ]
         )
+        # 默认显示第一项（语言标签），但不改变内部语言设定
+        self.lang_combo.setCurrentIndex(0)
         self.lang_combo.setStyleSheet(
             """
             QComboBox {
@@ -229,7 +232,8 @@ class TransparentWindow(QMainWindow):
         layout.addLayout(hold_th_layout)
         layout.addWidget(self.help_button)
 
-        self.languageChanged(0)
+        # 初始化语言显示为默认语言（不改变下拉显示）
+        self.changeLanguage("zh-CN")
 
     def setHoldTh(self, value):
         # value is an int from QSpinBox
@@ -253,19 +257,34 @@ class TransparentWindow(QMainWindow):
         self.help_button.setText(t("help_button", self.language))
         self.close_button.setText(t("close_button", self.language))
         self.title_label.setText(
-            t("app_title", self.language).format(version=LOCAL_VERSION)
+            t("app_title", self.language).format(version=self.local_version)
         )
         self.update()
         self.repositionWindow()
 
     def languageChanged(self, index):
-        language_map = {0: "zh-CN", 1: "zh-CN", 2: "zh-TW", 3: "ja-JP", 4: "en-US"}
+        # index 0 is the label placeholder; do nothing if selected
+        if index == 0:
+            return
+        language_map = {1: "zh-CN", 2: "zh-TW", 3: "ja-JP", 4: "en-US"}
         self.changeLanguage(language_map.get(index, "en-US"))
 
     def changeToggleButton(self):
-        global running
-        global focus
-        global low_performance_state
+        # Prefer engine state if attached, else fall back to module-level globals
+        if hasattr(self, "engine") and self.engine is not None:
+            running = getattr(self.engine, "running", False)
+            focus = getattr(self.engine, "focus", False)
+            low_performance = getattr(self.engine, "low_performance_state", False)
+        else:
+            try:
+                running = globals().get("running", False)
+                focus = globals().get("focus", False)
+                low_performance = globals().get("low_performance_state", False)
+            except Exception:
+                running = False
+                focus = False
+                low_performance = False
+
         if self.btnPosition[0] == running and self.btnPosition[1] == focus:
             return
         if running and focus:
@@ -276,7 +295,7 @@ class TransparentWindow(QMainWindow):
             button_text = t("not_running_focus", self.language)
         else:
             button_text = t("note_running_not_focus", self.language)
-        if low_performance_state:
+        if low_performance:
             button_text += " (Low Performance)"
 
         self.toggle_button.setText(button_text)
@@ -329,8 +348,8 @@ class TransparentWindow(QMainWindow):
             event.accept()
 
 
-def create_overlay(points):
+def create_overlay(points, local_version=None):
     app = QApplication([])
-    window = TransparentWindow(points)
+    window = TransparentWindow(points, local_version=local_version)
     window.show()
     return app, window

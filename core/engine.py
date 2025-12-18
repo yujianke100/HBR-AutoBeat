@@ -2,6 +2,7 @@ import time
 from threading import Thread
 from typing import List, Tuple
 
+import pygetwindow as gw
 import win32gui
 from pynput.keyboard import Controller, Key
 from PyQt5.QtCore import QMetaObject, Qt
@@ -56,11 +57,20 @@ class AutoSongEngine:
         self.focus = False
         self.low_performance_state = False
         self._thread = None
+        self.window_title = "HeavenBurnsRed"
 
     def is_window_on_top(self):
         try:
             top_window_hwnd = win32gui.GetForegroundWindow()
-            return top_window_hwnd == self.overlay_window._hWnd
+            all_titles = gw.getAllTitles()
+            browser_window_titles = [
+                title for title in all_titles if self.window_title in title
+            ]
+            if not browser_window_titles:
+                return False
+            chosen_title = browser_window_titles[0]
+            window = gw.getWindowsWithTitle(chosen_title)[0]
+            return top_window_hwnd == window._hWnd
         except Exception:
             return False
 

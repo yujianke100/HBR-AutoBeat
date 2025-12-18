@@ -62,7 +62,7 @@ def check_for_updates():
 if __name__ == "__main__":
     check_for_updates()
     points = [(325, 810), (575, 810), (825, 810), (1075, 810), (1325, 810), (1575, 810)]
-    app, overlay_window = create_overlay(points)
+    app, overlay_window = create_overlay(points, LOCAL_VERSION)
 
     # create and start the auto-song engine, attach to UI
     engine = AutoSongEngine(overlay_window, points, hold_th, single_run_time)
