@@ -27,9 +27,9 @@ description: "Implementation tasks for feature 001-auto-song-play"
 
 ## Phase 4: Documentation & Release Artefacts (P0)
 
-- [ ] T004-1 Create `README.md` (English) and `README_zh-CN.md` (Chinese) using `./icon` images; add quickstart, usage, configuration and troubleshooting sections.
-- [ ] T004-2 Add `LICENSE` (suggest MIT unless otherwise requested) and `RELEASE.md` template with changelog guidance.
-- [ ] T004-3 Add `docs/` short HOWTO for contributors: running formatters, tests, and creating releases.
+ - [X] T004-1 Create `README.md` (English) and `README_zh-CN.md` (Chinese) using `./icon` images; add quickstart, usage, configuration and troubleshooting sections.
+ - [X] T004-2 Add `LICENSE` (suggest MIT unless otherwise requested) and `RELEASE.md` template with changelog guidance.
+ - [X] T004-3 Add `docs/` short HOWTO for contributors: running formatters, tests, and creating releases.
 
 ## Phase 5: Continuous Play UI (P1)
 

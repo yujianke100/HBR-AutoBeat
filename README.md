@@ -1,77 +1,56 @@
+﻿<p align="center">
+  <img src="icon/logo.jpg" alt="HBR-AutoBeat" width="256" />
+</p>
+
 # HBR-AutoBeat
 
-An automated rhythm game player script for Heaven Burns Red
+[![Release](https://img.shields.io/github/v/release/yujianke100/HBR-AutoBeat)](https://github.com/yujianke100/HBR-AutoBeat/releases/latest) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Languages](https://img.shields.io/badge/languages-zh%20%7C%20en%20%7C%20ja-blue)](README.md)
 
-![image](figs/screenshot.png)
-<div style="display: flex; justify-content: space-between;">
-  <img src="figs/multilanguages.png" style="width: 48%; object-fit: contain; min-width: 100px;" />
-  <img src="figs/help.png" style="width: 48%; object-fit: contain; min-width: 100px;" />
-</div>
+Language: **English**  other translations: [简体中文](README_zh-CN.md)  [日本語](README_ja-JP.md)
 
-**该脚本只用于获取奖励。高难度下的部分逻辑未实现，以确保本脚本无法冲高分**
+AutoBeat helper tool for Heaven Burns Red (HBR).
 
-**This script is intended solely for obtaining rewards. Part of the logic in high difficulty is not implemented to ensure that this script cannot achieve high scores.**
+## Quickstart
 
-**このスクリプトは報酬を得るためだけに使用され。高スコアを達成できないことを保証するために、高難易度の一部のロジックは実装されていません。**
+Download the latest release and run the bundled executable:
 
-[OD条刻度尺](https://github.com/yujianke100/HBR-OD-Ruler)
+- https://github.com/yujianke100/HBR-AutoBeat/releases/latest
 
-## 说明
-
-**总结几个常见问题。**
-- 点按正常长按变点按：按键大小改为80%。
-- 闪退：确定是steam客户端，窗口名称为HeavenBurnsRed
-- 疯狂连点：确认游戏是1080p，1080p屏幕应该设置100%缩放，2k我测试125%正常
-- 全miss：确认脚本还开着、按键设置正确、打开脚本后已回到了游戏、游戏左上角和下方所有按键没被遮挡。**还有人通过管理员权限打开解决的**。cpu占满了还miss的话是电脑性能不够。
-- 不能完美全连：拿个奖励就得了，拿脚本冲顶分，别被官方针对了搞得谁都用不了
-
-[NGA帖子传送门（新版）](https://bbs.nga.cn/read.php?tid=43140018&_ff=510381)
-[NGA帖子传送门（旧版）](https://bbs.nga.cn/read.php?&tid=41488250)
-
-纯自用的脚本，没做任何兼容。策略非常暴力，直接靠像素点颜色变化实现。如果残血特效影响到判定点，就会失效。只优化到了hard打SS为止，打不了高分，只求打个石头。
-
-音游相关设置可以看这个[视频](https://www.bilibili.com/video/BV1ePH7eSEwJ)的开头。
-初始化设置，然后按键大小调整到80%，再把同时按压线显示关掉
-
-测试了下，1080p显示器下开1080p游戏窗口也是能用的，就是要确保窗口左上角露出来的同时右下角的判定区域别被遮了就行。低于这个分辨率的电脑，性能估计也跑不了这个脚本。
-
-为了方便小白，已经[打包成exe](https://github.com/yujianke100/HBR-AutoBeat/releases/latest/download/HBR-AutoBeat.exe)可以一键启动了：
-
-就不上传大陆网盘了，上不了gayhub的话你应该也玩不了红烧天堂的外服吧。
-
-注意，启动脚本前先把游戏开到“演唱会开始”的界面，再启动脚本。脚本会自动切回游戏，然后按开始就行了。结束了就最小化游戏/切到游戏外面，脚本就会退出。
+Developer quickstart (see `docs/HOWTO.md` for details)
 
 
-## Heaven Burns Red Auto Rhythm Game Player
+## Features
 
+- Auto Song Play
 
-[Demo video](https://www.bilibili.com/video/BV1ePH7eSEwJ)
+## Usage Instructions
 
-**Need to adjust the button size to 80% and turn off the simultaneous press line display.**
+### Auto Song Play
 
-[Run it without setting up a Python environment](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe).
+This script is designed only for obtaining rewards. High-difficulty logic is not fully implemented to prevent high-score abuse.
 
-### Test Environment
-- **Operating System**: Windows 11
-- **Screen Resolution**: 1440p (Also tested under 1080p)
-- **Game Settings**: 1080p, Windowed Mode
+This is a self-use script with no compatibility considerations. The strategy is straightforward and pixel-color-based. If residual effects interfere with detection points, it may fail. Optimized for Hard SS rank only, cannot achieve top scores, intended for reward collection.
 
-### Usage Instructions
-1. Run the script before starting the rhythm game. Ensure that the top left corner and the judgment area on the far right are uncovered.
-2. The script will be exited automatically if the game window is not in focus.
+#### Setup Instructions
 
-## 日本語
+- Launch the game and set resolution to 1080P (1920  1080).
+- Open the software and click "Auto Song" to open the play window.
+- Configure play settings: reset to default, set background to "None", adjust key size to 80%, and disable "Show simultaneous press line".
+- Use the "Detect Game Window" button to align to the game window. Re-detect if the game window moves.
+- Ensure the game is at the "Concert Start" screen. After clicking the activate button, return to the game. When both activate and focus buttons turn green, click "Concert Start" to begin auto play.
+- Additional continuous play settings are available in the Auto Song view.
 
-ヘブンバーンズレッド用の自動ライブモード（音ゲー）プレイヤースクリプト
+#### Troubleshooting
 
-最高得点を狙うわけではなく、ハードでSSランクを取るために最適化してありますが、高得点を目指すことはできません。ただ、報酬を確保するためのものです。
+- Key press delays: Try adjusting key size to 80%.
+- Application crashes: Verify you are using the Steam client and the window title is `HeavenBurnsRed`.
+- Rapid tapping or performance issues: Set system scaling to 100% (125% may work on 2K displays).
+- Complete misses: Confirm the script is running, keys are correctly configured, the game window is fully visible, and try running as administrator if needed.
 
-音ゲーの設定については、この[動画](https://www.bilibili.com/video/BV1ePH7eSEwJ)をご覧ください。
-最も重要なのは、ボタンのサイズを80％に調整し、同時押しラインの表示をオフにすることです。
+Discussion:
 
-1080pモニターで1080pのゲームウィンドウを使用しても動作確認済みです。ただし、ウィンドウの左上が表示されている状態で、右下の判定エリアが隠れないようにする必要があります。それより低い解像度のPCでは、このスクリプトを動作させる性能はないかもしれません。
+- NGA Forum (Latest): https://bbs.nga.cn/read.php?tid=43140018&_ff=510381
 
-初心者のために、すでに[exeファイル](https://github.com/yujianke100/HBR-AutoBeat/releases/download/v2.0/HBR-AutoBeat.exe)としてパッケージ化してあり、ワンクリックで起動できます。。
+Video and Settings Guide:
 
-
-スクリプトを起動する前に、ゲームを「ライブ開始」画面まで進めてからスクリプトを起動してください。スクリプトは自動的にゲームに切り替え、スタートボタンを押すだけで始まります。終了したら、ゲームを最小化するか、他のウィンドウに切り替えるとスクリプトは自動的に終了します。
+- View example video: https://www.bilibili.com/video/BV1ePH7eSEwJ (Setup and key size configuration)

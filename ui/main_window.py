@@ -352,7 +352,7 @@ class TransparentWindow(QMainWindow):
         # index 0 is the label placeholder; do nothing if selected
         if index == 0:
             return
-        language_map = {1: "zh-CN", 2: "zh-TW", 3: "ja-JP", 4: "en-US"}
+        language_map = {1: "zh-CN", 2: "ja-JP", 3: "en-US"}
         self.changeLanguage(language_map.get(index, "en-US"))
 
     def changeToggleButton(self):
@@ -538,14 +538,13 @@ class ControlWindow(QMainWindow):
             [
                 t("language_label", "en-US"),
                 t("language_zh_cn", "zh-CN"),
-                t("language_zh_tw", "zh-TW"),
                 t("language_ja_jp", "ja-JP"),
                 t("language_en_us", "en-US"),
             ]
         )
         # set language from persisted config if available
         current_lang = get("language", "zh-CN")
-        lang_index_map = {"zh-CN": 1, "zh-TW": 2, "ja-JP": 3, "en-US": 4}
+        lang_index_map = {"zh-CN": 1, "ja-JP": 2, "en-US": 3}
         self.lang_combo.setCurrentIndex(lang_index_map.get(current_lang, 1))
         self.lang_combo.setStyleSheet(
             """
@@ -573,11 +572,7 @@ class ControlWindow(QMainWindow):
             + (
                 "请选择功能"
                 if self.language == "zh-CN"
-                else (
-                    "Select Feature"
-                    if self.language == "en-US"
-                    else "機能を選択" if self.language == "ja-JP" else "請選擇功能"
-                )
+                else ("Select Feature" if self.language == "en-US" else "機能を選択")
             )
         )
         separator.setStyleSheet(
@@ -659,7 +654,7 @@ class ControlWindow(QMainWindow):
     def _on_language_changed(self, index):
         if index == 0:
             return
-        language_map = {1: "zh-CN", 2: "zh-TW", 3: "ja-JP", 4: "en-US"}
+        language_map = {1: "zh-CN", 2: "ja-JP", 3: "en-US"}
         self.language = language_map.get(index, "zh-CN")
         # persist language selection
         try:
@@ -689,9 +684,6 @@ class ControlWindow(QMainWindow):
         if self.language == "zh-CN":
             self.check_updates_button.setText("检查更新")
             self.separator_label.setText("↓ 请选择功能")
-        elif self.language == "zh-TW":
-            self.check_updates_button.setText("檢查更新")
-            self.separator_label.setText("↓ 請選擇功能")
         elif self.language == "ja-JP":
             self.check_updates_button.setText("アップデートを確認")
             self.separator_label.setText("↓ 機能を選択")
