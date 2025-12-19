@@ -13,10 +13,14 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from i18n import t
 
 
-def deactivate_window(window_title: str = "HeavenBurnsRed") -> None:
+def deactivate_window(
+    window_title: str = "HeavenBurnsRed", suppress_messages: bool = False
+) -> None:
     all_windows = gw.getAllTitles()
     browser_window_titles = [title for title in all_windows if window_title in title]
     if browser_window_titles == []:
+        if suppress_messages:
+            return
         QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
@@ -33,10 +37,14 @@ def deactivate_window(window_title: str = "HeavenBurnsRed") -> None:
     time.sleep(0.5)
 
 
-def reactivate_window(window_title: str = "HeavenBurnsRed") -> None:
+def reactivate_window(
+    window_title: str = "HeavenBurnsRed", suppress_messages: bool = False
+) -> None:
     all_windows = gw.getAllTitles()
     browser_window_titles = [title for title in all_windows if window_title in title]
     if browser_window_titles == []:
+        if suppress_messages:
+            return
         QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
@@ -58,7 +66,8 @@ def init(
     window_title: str, points: list, test_flag: bool = False
 ) -> Tuple[int, int, int, int, int, int, int]:
     """Return (client_left, client_top, client_width, client_height, y_value, min_x, max_x)"""
-    reactivate_window(window_title)
+    # allow caller to suppress message boxes when running in background
+    reactivate_window(window_title, suppress_messages=test_flag)
 
     # get the chosen window
     all_windows = gw.getAllTitles()
@@ -78,6 +87,8 @@ def init(
     client_height = client_bottom - client_top
 
     if client_width != 1920 or client_height != 1080:
+        if test_flag:
+            raise RuntimeError("resolution-mismatch")
         QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)

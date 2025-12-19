@@ -20,10 +20,10 @@ description: "Implementation tasks for feature 001-auto-song-play"
 
 ## Phase 3: UI Refactor - Main/Feature Screens (P0)
 
-- [ ] T003-1 Create `ui/` package and move existing UI code into `ui/main_window.py` and `ui/auto_song.py`. (files: `ui/*.py`)
-- [ ] T003-2 Implement main window layout: first row contains `识别游戏窗口` + `语言切换` buttons; below is list of feature entry buttons (first entry: 自动打歌)。
-- [ ] T003-3 Implement logic to load `ui/auto_song.py` as secondary view when entry clicked (keep back/navigation control).
-- [ ] T003-4 Add persistent config storage (`config.json`) and small helper module `src/config.py` for reading/writing settings.
+- [X] T003-1 Create `ui/` package and move existing UI code into `ui/main_window.py` and `ui/auto_song.py`. (files: `ui/*.py`)
+- [X] T003-2 Implement main window layout: first row contains `识别游戏窗口` + `语言切换` buttons; below is list of feature entry buttons (first entry: 自动打歌)。
+- [X] T003-3 Implement logic to load `ui/auto_song.py` as secondary view when entry clicked (keep back/navigation control).
+- [X] T003-4 Add persistent config storage (`config.json`) and small helper module `src/config.py` for reading/writing settings.
 
 ## Phase 4: Documentation & Release Artefacts (P0)
 

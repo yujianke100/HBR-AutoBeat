@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from typing import Tuple
 
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
     QApplication,
@@ -39,22 +39,16 @@ def get_dpi_scale_factor():
 class TransparentWindow(QMainWindow):
     def __init__(self, points, local_version=None):
         super().__init__()
-        (
-            client_left,
-            client_top,
-            client_width,
-            client_height,
-            y_value,
-            min_x,
-            max_x,
-        ) = init("HeavenBurnsRed", points, test_flag=False)
-        self.client_left = client_left
-        self.client_top = client_top
-        self.client_width = client_width
-        self.client_height = client_height
-        self.y_value = y_value
-        self.min_x = min_x
-        self.max_x = max_x
+        # Defer expensive window detection (win32 calls) to async worker
+        self.client_left = 0
+        self.client_top = 0
+        self.client_width = 1920
+        self.client_height = 1080
+        self.y_value = points[0][1] if points else 810
+        self.min_x = min(p[0] for p in points) if points else 325
+        self.max_x = max(p[0] for p in points) if points else 1575
+        self._reposition_done = False
+        self._pending_geometry = None
         self.language = "zh-CN"
         self.btnPosition = [None, None]
         self.local_version = local_version or "v0.0.0"
@@ -89,6 +83,53 @@ class TransparentWindow(QMainWindow):
         logical_left = int(self.client_left / scale)
         logical_top = int((self.client_top + 150) / scale)
         self.setGeometry(logical_left, logical_top, 10, 10)
+
+    def start_reposition_async(self, points=None):
+        """Start background worker to detect game window and apply geometry when ready."""
+        import threading
+
+        def _worker():
+            try:
+                pts = points or [
+                    (325, 810),
+                    (575, 810),
+                    (825, 810),
+                    (1075, 810),
+                    (1325, 810),
+                    (1575, 810),
+                ]
+                (
+                    client_left,
+                    client_top,
+                    client_width,
+                    client_height,
+                    y_value,
+                    min_x,
+                    max_x,
+                ) = init("HeavenBurnsRed", pts, test_flag=True)
+                scale = get_dpi_scale_factor()
+                logical_left = int(client_left / scale)
+                logical_top = int((client_top + 150) / scale)
+                # store pending geometry for main thread to apply
+                self._pending_geometry = (logical_left, logical_top, 10, 10)
+                self._reposition_done = True
+            except Exception:
+                self._reposition_done = True
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+        # poll for completion and apply geometry on main thread
+        timer = QTimer(self)
+
+        def _check():
+            if getattr(self, "_reposition_done", False):
+                if self._pending_geometry:
+                    left, top, w, h = self._pending_geometry
+                    self.setGeometry(left, top, w, h)
+                timer.stop()
+
+        timer.timeout.connect(_check)
+        timer.start(50)
 
     def exitApplication(self):
         import sys
@@ -254,6 +295,11 @@ class TransparentWindow(QMainWindow):
             }        """
         )
         self.return_button.clicked.connect(self._on_return_clicked)
+        # add help button above return button
+        try:
+            layout.addWidget(self.help_button)
+        except Exception:
+            pass
         layout.addWidget(self.return_button)
 
         # callback set by caller to handle returning to main window

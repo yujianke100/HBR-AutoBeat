@@ -104,9 +104,9 @@ if __name__ == "__main__":
         overlay_window = create_overlay(points, LOCAL_VERSION)
         overlay_window.language = control.language
         overlay_window.changeLanguage(control.language)
-        # Re-position window after creation to handle DPI scaling properly
-        overlay_window.repositionWindow()
+        # Show overlay immediately and start async reposition to avoid blocking UI
         overlay_window.show()
+        overlay_window.start_reposition_async(points)
 
         engine = AutoSongEngine(overlay_window, points, hold_th, single_run_time)
         attach_auto_song(engine, overlay_window)
