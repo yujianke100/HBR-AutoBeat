@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
 
 from core.window_helpers import init
 from i18n import t
+from src.config import get, set
 
 
 def get_dpi_scale_factor():
@@ -100,7 +101,7 @@ class TransparentWindow(QMainWindow):
         )
 
     def initUI(self):
-        global LOCAL_VERSION
+        # `LOCAL_VERSION` is provided by caller; no global needed here
         self.setWindowFlags(
             Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
         )
@@ -466,7 +467,26 @@ class ControlWindow(QMainWindow):
         title_bar.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
         layout.addWidget(title_bar)
 
-        # Language selector
+        # First row: 识别游戏窗口 (reposition) + Language selector
+        first_row = QWidget()
+        first_row_layout = QHBoxLayout()
+        first_row_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.reposition_button = QPushButton(t("btn_recognize_window", "zh-CN"))
+        self.reposition_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(0, 191, 255, 150);
+                color: white;
+                border: none;
+                padding: 5px;
+                border-radius: 3px;
+            }
+        """
+        )
+        self.reposition_button.setFixedHeight(28)
+        self.reposition_button.clicked.connect(self.repositionWindow)
+
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(
             [
@@ -477,7 +497,10 @@ class ControlWindow(QMainWindow):
                 t("language_en_us", "en-US"),
             ]
         )
-        self.lang_combo.setCurrentIndex(0)
+        # set language from persisted config if available
+        current_lang = get("language", "zh-CN")
+        lang_index_map = {"zh-CN": 1, "zh-TW": 2, "ja-JP": 3, "en-US": 4}
+        self.lang_combo.setCurrentIndex(lang_index_map.get(current_lang, 1))
         self.lang_combo.setStyleSheet(
             """
             QComboBox {
@@ -492,7 +515,11 @@ class ControlWindow(QMainWindow):
         """
         )
         self.lang_combo.currentIndexChanged.connect(self._on_language_changed)
-        layout.addWidget(self.lang_combo)
+
+        first_row_layout.addWidget(self.reposition_button)
+        first_row_layout.addWidget(self.lang_combo)
+        first_row.setLayout(first_row_layout)
+        layout.addWidget(first_row)
 
         # Separator with feature selection hint
         separator = QLabel(
@@ -588,7 +615,27 @@ class ControlWindow(QMainWindow):
             return
         language_map = {1: "zh-CN", 2: "zh-TW", 3: "ja-JP", 4: "en-US"}
         self.language = language_map.get(index, "zh-CN")
+        # persist language selection
+        try:
+            set("language", self.language)
+        except Exception:
+            pass
         self._update_ui_texts()
+
+    def repositionWindow(self):
+        # reuse helper used by overlay window; this will show messages if window not found
+        points = [
+            (325, 810),
+            (575, 810),
+            (825, 810),
+            (1075, 810),
+            (1325, 810),
+            (1575, 810),
+        ]
+        try:
+            init("HeavenBurnsRed", points)
+        except Exception:
+            pass
 
     def _update_ui_texts(self):
         # Update all UI texts based on current language

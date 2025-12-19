@@ -1,23 +1,25 @@
 import sys
 from pathlib import Path
 
-# app = QApplication(sys.argv)
-# app.setAttribute(Qt.AA_EnableHighDpiScaling)  # 启用 Qt 的 DPI 适配
-# app.setAttribute(Qt.AA_UseHighDpiPixmaps)  # 让 QPixmap 适配高 DPI
+# Standard / third-party imports
 import pyautogui  # 不能省，否则会让窗口识别失效  # noqa: F401
-import requests
+import requests  # type: ignore
 from pynput import keyboard  # noqa: F401
 from pynput.keyboard import Controller, Key, KeyCode, Listener  # noqa: F401
+
+# Qt imports
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
+# Local imports
 from core.engine import AutoSongEngine
+from src.config import get
 from ui.auto_song import attach as attach_auto_song
 from ui.main_window import ControlWindow, create_overlay
 
 # runtime globals
-hold_th = 10
+hold_th = get("hold_th", 10)
 single_run_time = 0.015
 low_performance_state = False
 LOCAL_VERSION = "v3.0.0"
@@ -63,8 +65,8 @@ def check_for_updates():
 # 在主脚本中使用：
 if __name__ == "__main__":
     # Set DPI attributes BEFORE creating QApplication
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)  # type: ignore[attr-defined]
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)  # type: ignore[attr-defined]
 
     # create QApplication after setting attributes
     app = QApplication(sys.argv)

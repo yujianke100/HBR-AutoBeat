@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict
 
-import yaml
+import yaml  # type: ignore
 
 _LANG_CACHE: Dict[str, Any] = {}
 

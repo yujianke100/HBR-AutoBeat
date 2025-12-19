@@ -35,3 +35,4 @@ dist/
 
 # Pre-commit
 .pre-commit-config.yaml
+.github\workflows\lint.yml

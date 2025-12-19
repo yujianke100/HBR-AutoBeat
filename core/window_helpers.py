@@ -23,7 +23,7 @@ def deactivate_window(window_title: str = "HeavenBurnsRed") -> None:
         msg_box.setWindowTitle(t("window_not_found", "Window Not Found"))
         msg_box.setText(t("hbr_not_found", "HBR was not found."))
         msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)  # type: ignore[attr-defined]
         msg_box.exec_()
         sys.exit()
 
@@ -43,7 +43,7 @@ def reactivate_window(window_title: str = "HeavenBurnsRed") -> None:
         msg_box.setWindowTitle(t("window_not_found", "Window Not Found"))
         msg_box.setText(t("hbr_not_found", "HBR was not found."))
         msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)  # type: ignore[attr-defined]
         msg_box.exec_()
         sys.exit()
 
@@ -92,7 +92,7 @@ def init(
         )
         msg_box.setText(msg)
         msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)  # type: ignore[attr-defined]
         msg_box.exec_()
         sys.exit()
 
