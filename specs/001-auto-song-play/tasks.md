@@ -39,10 +39,10 @@ description: "Implementation tasks for feature 001-auto-song-play"
 
 ## Phase 6: Continuous Play Settings Dialog (P1)
 
-- [ ] T006-1 Implement settings dialog UI that appears when `连续打歌` clicked: top hint line, two large toggles, a small divider, difficulty dropdown, and repeat-count numeric input with spinner/wheel support.
-- [ ] T006-2 Toggle A: "打新曲子（单曲，依次刷EASY, NORMAL, HARD，然后再打两次EASY）"; Toggle B: "连续刷歌（每首当新歌）". When either large toggle is ON, subsequent detailed settings should be disabled (greyed).
-- [ ] T006-3 Difficulty selector: choices `EASY, NORMAL, HARD, EXPERT` (default maintain current config). Repeat count: integer >=1, default 1.
-- [ ] T006-4 Validate inputs and persist settings to `config.json` upon OK; cancel should not persist.
+- [X] T006-1 Implement settings dialog UI that appears when `连续打歌` clicked: top hint line, two large toggles, a small divider, difficulty dropdown, and repeat-count numeric input with spinner/wheel support.
+- [X] T006-2 Toggle A: "打新曲子（单曲，依次刷EASY, NORMAL, HARD，然后再打两次EASY）"; Toggle B: "连续刷歌（每首当新歌）". When either large toggle is ON, subsequent detailed settings should be disabled (greyed).
+- [X] T006-3 Difficulty selector: choices `EASY, NORMAL, HARD, EXPERT` (default maintain current config). Repeat count: integer >=1, default 1.
+- [X] T006-4 Validate inputs and persist settings to `config.json` upon OK; cancel should not persist.
 
 ## Phase 7: Song Completion Detection & External Cut-Song Logic (P1)
 
