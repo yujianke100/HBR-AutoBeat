@@ -33,9 +33,9 @@ description: "Implementation tasks for feature 001-auto-song-play"
 
 ## Phase 5: Continuous Play UI (P1)
 
-- [ ] T005-1 Add `连续打歌` button to `ui/auto_song.py` secondary view; default state: disabled/greyed-out when preconditions not satisfied.
-- [ ] T005-2 Add hover tooltip for disabled state: "请先识别游戏窗口并进入选歌界面" (localized via `i18n`).
-- [ ] T005-3 Implement enabling/disabling rules: enabled only when `GameWindow` recognized and UI reports in '选歌界面' state.
+- [X] T005-1 Add `连续打歌` button to `ui/auto_song.py` secondary view; default state: disabled/greyed-out when preconditions not satisfied.
+- [X] T005-2 Add hover tooltip for disabled state: "请先识别游戏窗口并进入选歌界面" (localized via `i18n`).
+- [X] T005-3 Implement enabling/disabling rules: enabled only when `GameWindow` recognized and UI reports in '选歌界面' state.
 
 ## Phase 6: Continuous Play Settings Dialog (P1)
 
