@@ -46,7 +46,7 @@ description: "Implementation tasks for feature 001-auto-song-play"
 
 ## Phase 7: Song Completion Detection & External Cut-Song Logic (P1)
 
-- [ ] T007-1 Design detection heuristics: detect '结算页面' vs '失败页面' vs '选歌页面' using screen templates / pixel checks. Add modular detectors under `src/detectors.py`.
+- [ ] T007-1 Design detection heuristics: detect '选曲界面' vs '准备开始界面' vs '失败页面' vs '成功界面1' vs '成功界面2' using screen templates / pixel checks. Add modular detectors under `src/detectors.py`.
 - [ ] T007-2 Implement robust completion detection: only treat play as 'completed' when settlement screen pattern observed; treat failure when failure pattern observed; fallback: timeouts and conservative stop.
 - [ ] T007-3 Implement external cut-song flow: record current selected song identifier, send `Down` (or mapped) key, confirm selection via reading selected element, then choose difficulty and start song. Retry logic if confirmation fails.
 - [ ] T007-4 Add telemetry/logging hooks to record decisions for diagnostics (`logs/sessions/*.log`).
