@@ -14,7 +14,6 @@ from PyQt5.QtWidgets import (
 )
 
 from i18n import t
-from src.config import get, set
 
 
 class PlayModeSettingsDialog(QDialog):
@@ -26,17 +25,22 @@ class PlayModeSettingsDialog(QDialog):
         "continuous": t("play_mode_continuous", "zh-CN"),
     }
 
-    def __init__(self, language: str = "zh-CN", parent=None):
+    def __init__(
+        self, language: str = "zh-CN", initial_mode: str = "single", parent=None
+    ):
         super().__init__(parent)
-        self.language = language
-        self.selected_mode = get("play_mode", "single")
-        self.selected_difficulty = get("play_mode_difficulty", "EASY")
-        self.repeat_count = get("play_mode_repeat_count", 1)
-        self.setWindowTitle(t("play_mode_settings_title", language))
+        # Set translucent background immediately to avoid white flash
+        self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowFlags(
             Qt.Window | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
         )
-        self.setAttribute(Qt.WA_TranslucentBackground)
+
+        self.language = language
+        # Initialize with provided settings (allows showing current settings)
+        self.selected_mode = initial_mode
+        self.selected_difficulty = "EASY"
+        self.repeat_count = 1
+        self.setWindowTitle(t("play_mode_settings_title", language))
         self.setFixedWidth(450)
         self.initUI()
 
@@ -45,6 +49,9 @@ class PlayModeSettingsDialog(QDialog):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
+        main_layout.setSizeConstraint(
+            QVBoxLayout.SetFixedSize
+        )  # Ensure dialog resizes to fit content
 
         # Background widget for styling
         bg_widget = QWidget()
@@ -58,7 +65,8 @@ class PlayModeSettingsDialog(QDialog):
         # Play mode label and dropdown
         mode_layout = QHBoxLayout()
         mode_label = QLabel(t("play_mode_label", self.language))
-        mode_label.setStyleSheet("color: white; font-weight: bold;")
+        mode_label.setStyleSheet("color: white; font-weight: bold; font-size: 13px;")
+        mode_label.setAlignment(Qt.AlignCenter)
         mode_label.setFixedWidth(100)
 
         self.mode_combo = QComboBox()
@@ -69,15 +77,7 @@ class PlayModeSettingsDialog(QDialog):
         ]
         self.mode_combo.addItems(modes_text)
         self.mode_combo.setStyleSheet(self._get_combo_style())
-        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
-
-        # Set current mode
-        mode_keys = ["single", "new_songs", "continuous"]
-        try:
-            index = mode_keys.index(self.selected_mode)
-            self.mode_combo.setCurrentIndex(index)
-        except ValueError:
-            self.mode_combo.setCurrentIndex(0)
+        # Don't connect signal yet - will connect after all widgets are created
 
         mode_layout.addWidget(mode_label)
         mode_layout.addWidget(self.mode_combo, 1)
@@ -102,7 +102,7 @@ class PlayModeSettingsDialog(QDialog):
         # Difficulty selector (only for continuous mode)
         difficulty_layout = QHBoxLayout()
         difficulty_label = QLabel(t("difficulty_label", self.language))
-        difficulty_label.setStyleSheet("color: white;")
+        difficulty_label.setStyleSheet("color: white; font-size: 12px;")
         difficulty_label.setFixedWidth(100)
         self.difficulty_combo = QComboBox()
         self.difficulty_combo.addItems(
@@ -130,7 +130,7 @@ class PlayModeSettingsDialog(QDialog):
         # Repeat count
         repeat_layout = QHBoxLayout()
         repeat_label = QLabel(t("repeat_count_label", self.language))
-        repeat_label.setStyleSheet("color: white;")
+        repeat_label.setStyleSheet("color: white; font-size: 12px;")
         repeat_label.setFixedWidth(100)
         self.repeat_spinbox = QSpinBox()
         self.repeat_spinbox.setMinimum(1)
@@ -160,7 +160,16 @@ class PlayModeSettingsDialog(QDialog):
 
         main_layout.addWidget(bg_widget)
 
-        # Initially update visibility of settings
+        # Now connect signal and set initial index after all widgets are created
+        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
+        mode_keys = ["single", "new_songs", "continuous"]
+        try:
+            index = mode_keys.index(self.selected_mode)
+            self.mode_combo.setCurrentIndex(index)
+        except ValueError:
+            self.mode_combo.setCurrentIndex(0)
+
+        # Explicitly update visibility to ensure difficulty/repeat are hidden initially
         self._update_settings_visibility()
 
     def _get_combo_style(self) -> str:
@@ -172,6 +181,7 @@ class PlayModeSettingsDialog(QDialog):
                 border: 1px solid rgba(100, 149, 237, 150);
                 padding: 5px;
                 border-radius: 3px;
+                font-size: 12px;
             }
             QComboBox::drop-down {
                 background-color: rgba(100, 149, 237, 150);
@@ -180,6 +190,7 @@ class PlayModeSettingsDialog(QDialog):
                 background-color: rgba(60, 60, 60, 200);
                 color: white;
                 selection-background-color: rgba(100, 149, 237, 150);
+                font-size: 12px;
             }
         """
 
@@ -238,6 +249,9 @@ class PlayModeSettingsDialog(QDialog):
         else:
             self.tooltip_label.setVisible(False)
 
+        # Adjust dialog size after visibility changes
+        self.adjustSize()
+
     def _update_settings_visibility(self):
         """Update visibility of difficulty and repeat count settings."""
         is_continuous = self.mode_combo.currentIndex() == 2
@@ -255,16 +269,7 @@ class PlayModeSettingsDialog(QDialog):
             )
             return
 
-        # Save settings to config
-        mode_keys = ["single", "new_songs", "continuous"]
-        selected_mode = mode_keys[self.mode_combo.currentIndex()]
-        difficulties = ["EASY", "NORMAL", "HARD", "EXPERT"]
-        selected_difficulty = difficulties[self.difficulty_combo.currentIndex()]
-
-        set("play_mode", selected_mode)
-        set("play_mode_difficulty", selected_difficulty)
-        set("play_mode_repeat_count", repeat_count)
-
+        # Settings are not persisted, dialog just closes
         self.accept()
 
     def get_settings(self) -> dict:
@@ -282,15 +287,18 @@ class ContinuousPlayButton(QPushButton):
     """Button for play mode settings with current mode display."""
 
     def __init__(self, language: str = "zh-CN", parent=None):
-        # Initialize with current mode
+        # Initialize with default mode
         self.language = language
-        self.current_mode = get("play_mode", "single")
+        self.current_mode = "single"
         button_text = self._get_button_text()
         super().__init__(button_text, parent)
 
         self.is_enabled_state = False
         self.game_window_recognized = False
         self.in_song_selection = False
+        self.overlay_window = (
+            parent  # Store reference to overlay window for UI visibility management
+        )
         self._setup_styles()
         self._update_state()
         # Connect clicked signal to show settings dialog
@@ -312,11 +320,12 @@ class ContinuousPlayButton(QPushButton):
         """Handle button click - show settings dialog."""
         if not self.isEnabled():
             return
-        # Show play mode settings dialog
-        dialog = PlayModeSettingsDialog(self.language, self.parent())
+        # Show play mode settings dialog with current mode
+        dialog = PlayModeSettingsDialog(self.language, self.current_mode, self.parent())
         if dialog.exec_() == QDialog.Accepted:
-            # Update button text with new mode
-            self.current_mode = get("play_mode", "single")
+            # Get the selected settings from dialog
+            settings = dialog.get_settings()
+            self.current_mode = settings["mode"]
             self.setText(self._get_button_text())
 
     def _setup_styles(self):
@@ -371,6 +380,28 @@ class ContinuousPlayButton(QPushButton):
             self.setToolTip(t("continuous_play_disabled", self.language))
         else:
             self.setToolTip("")
+
+    def _manage_ui_visibility(self, is_playing: bool):
+        """Hide or show control buttons based on playing state."""
+        # Use the stored overlay_window reference
+        if not self.overlay_window:
+            return
+
+        # Hide these buttons when playing (is_playing=True), show them when not playing
+        buttons_to_manage = [
+            "continuous_play_button",  # Play mode settings button (self)
+            "help_button",  # Help button
+            "return_button",  # Return to main button
+        ]
+
+        for button_name in buttons_to_manage:
+            if hasattr(self.overlay_window, button_name):
+                button = getattr(self.overlay_window, button_name)
+                button.setVisible(not is_playing)
+
+        # Adjust window size after hiding/showing buttons
+        if hasattr(self.overlay_window, "adjustSize"):
+            self.overlay_window.adjustSize()
 
     def set_language(self, language: str):
         """Update button text and tooltip when language changes."""

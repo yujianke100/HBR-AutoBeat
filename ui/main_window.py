@@ -20,7 +20,6 @@ from PyQt5.QtWidgets import (
 
 from core.window_helpers import init
 from i18n import t
-from src.config import get, set
 
 
 def get_dpi_scale_factor():
@@ -167,6 +166,9 @@ class TransparentWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         self.setMaximumWidth(300)
         layout = QVBoxLayout(central_widget)
+        layout.setSizeConstraint(
+            QVBoxLayout.SetFixedSize
+        )  # Ensure window resizes to fit content
 
         self.title_bar = QWidget()
         self.title_bar_layout = QHBoxLayout()
@@ -266,8 +268,11 @@ class TransparentWindow(QMainWindow):
         # Add continuous play button (Phase 5)
         from ui.auto_song import ContinuousPlayButton
 
-        self.continuous_play_button = ContinuousPlayButton(self.language)
+        self.continuous_play_button = ContinuousPlayButton(self.language, self)
         layout.addWidget(self.continuous_play_button)
+
+        # Initialize button visibility (show all buttons by default)
+        self.continuous_play_button._manage_ui_visibility(False)
 
         # 初始化语言显示为默认语言（不改变下拉显示）
         self.changeLanguage("zh-CN")
@@ -426,6 +431,11 @@ class TransparentWindow(QMainWindow):
         time.sleep(0.1)
         self.btnPosition[0] = running
         self.btnPosition[1] = focus
+
+        # Update button visibility based on running and focus state
+        # Hide buttons when both running and focused (activated + focused)
+        if hasattr(self, "continuous_play_button"):
+            self.continuous_play_button._manage_ui_visibility(running and focus)
 
     def toggleRunning(self):
         global running
@@ -586,10 +596,8 @@ class ControlWindow(QMainWindow):
                 t("language_en_us", "en-US"),
             ]
         )
-        # set language from persisted config if available
-        current_lang = get("language", "zh-CN")
-        lang_index_map = {"zh-CN": 1, "ja-JP": 2, "en-US": 3}
-        self.lang_combo.setCurrentIndex(lang_index_map.get(current_lang, 1))
+        # Always use default language (zh-CN)
+        self.lang_combo.setCurrentIndex(1)
         self.lang_combo.setStyleSheet(
             """
             QComboBox {
@@ -700,11 +708,7 @@ class ControlWindow(QMainWindow):
             return
         language_map = {1: "zh-CN", 2: "ja-JP", 3: "en-US"}
         self.language = language_map.get(index, "zh-CN")
-        # persist language selection
-        try:
-            set("language", self.language)
-        except Exception:
-            pass
+        # Language selection is not persisted
         self._update_ui_texts()
 
     def repositionWindow(self):

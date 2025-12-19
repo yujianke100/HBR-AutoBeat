@@ -4,9 +4,7 @@ window_not_found: "ウィンドウが見つかりません"
 hbr_not_found: "Heaven Burns Red ゲームが見つかりません。"
 resolution_error: "解像度エラー"
 resolution_mismatch: "ウィンドウの解像度が一致しません。\n"
-resolution_hint: (
-    "1920x1080 に設定してください。現在は {client_width}x{client_height} です。\n"
-)
+resolution_hint: "1920x1080 に設定してください。現在は {client_width}x{client_height} です。\n"
 resolution_reset: "ゲーム内で解像度を再設定してください。"
 btn_recognize_window: "ウィンドウ認識"
 btn_auto_song: "自動演奏"

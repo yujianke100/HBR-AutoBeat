@@ -23,9 +23,7 @@ note_running_not_focus: "Not Activated, Not Focused"
 running_not_focus: "Activated, Not Focused"
 not_running_focus: "Not Activated, Focused"
 return_to_main: "Return to Main"
-continuous_play_disabled: (
-    "Please recognize the game window and enter the song selection screen"
-)
+continuous_play_disabled: "Please recognize the game window and enter the song selection screen"
 # Phase 6: Play Mode Settings (Redesigned)
 play_mode_settings_title: "Select Play Mode to Execute"
 play_mode_label: "Play Mode"

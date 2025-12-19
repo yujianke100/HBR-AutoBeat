@@ -14,12 +14,11 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 
 # Local imports
 from core.engine import AutoSongEngine
-from src.config import get
 from ui.auto_song import attach as attach_auto_song
 from ui.main_window import ControlWindow, create_overlay
 
 # runtime globals
-hold_th = get("hold_th", 10)
+hold_th = 10
 single_run_time = 0.015
 low_performance_state = False
 LOCAL_VERSION = "v3.0.0"
