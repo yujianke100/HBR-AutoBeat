@@ -1,4 +1,3 @@
-import ctypes
 import time
 from pathlib import Path
 from typing import Tuple
@@ -24,16 +23,14 @@ from i18n import t
 
 
 def get_dpi_scale_factor():
-    """Get the DPI scale factor for the primary screen."""
+    """Get the DPI scale factor using Qt's API to match Qt's coordinate system."""
     try:
-        # Get DPI awareness
-        user32 = ctypes.windll.user32
-        user32.SetProcessDPIAware()
-        # Get screen DPI
-        hdc = user32.GetDC(0)
-        dpi = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)  # LOGPIXELSX
-        user32.ReleaseDC(0, hdc)
-        return dpi / 96.0  # 96 is the default DPI
+        app = QApplication.instance()
+        if app:
+            screen = app.primaryScreen()
+            if screen:
+                return screen.devicePixelRatio()
+        return 1.0
     except Exception:
         return 1.0
 
