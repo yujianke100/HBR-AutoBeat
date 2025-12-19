@@ -83,6 +83,11 @@ class TransparentWindow(QMainWindow):
         logical_left = int(self.client_left / scale)
         logical_top = int((self.client_top + 150) / scale)
         self.setGeometry(logical_left, logical_top, 10, 10)
+        # Mark that repositioning is done and update continuous play button state
+        self._reposition_done = True
+        self.update_continuous_play_button_state(
+            game_window_recognized=True, in_song_selection=True
+        )
 
     def start_reposition_async(self, points=None):
         """Start background worker to detect game window and apply geometry when ready."""
@@ -258,6 +263,12 @@ class TransparentWindow(QMainWindow):
         layout.addWidget(self.reposition_button)
         layout.addWidget(self.toggle_button)
 
+        # Add continuous play button (Phase 5)
+        from ui.auto_song import ContinuousPlayButton
+
+        self.continuous_play_button = ContinuousPlayButton(self.language)
+        layout.addWidget(self.continuous_play_button)
+
         # 初始化语言显示为默认语言（不改变下拉显示）
         self.changeLanguage("zh-CN")
 
@@ -345,6 +356,9 @@ class TransparentWindow(QMainWindow):
         self.title_label.setText(
             t("app_title", self.language).format(version=self.local_version)
         )
+        # Update continuous play button language (Phase 5)
+        if hasattr(self, "continuous_play_button"):
+            self.continuous_play_button.set_language(self.language)
         self.update()
         self.repositionWindow()
 
@@ -421,6 +435,36 @@ class TransparentWindow(QMainWindow):
     @pyqtSlot()
     def updateStatus(self):
         self.changeToggleButton()
+
+    def update_continuous_play_button_state(
+        self, game_window_recognized=None, in_song_selection=None
+    ):
+        """Update the state of the continuous play button based on preconditions.
+
+        Args:
+            game_window_recognized: Whether the game window has been recognized (default: check if repositioned)
+            in_song_selection: Whether the UI is in the song selection screen (default: True for now)
+        """
+        if not hasattr(self, "continuous_play_button"):
+            return
+
+        # Default: game window is recognized if client_width is not 1920 (default) or explicitly checked
+        if game_window_recognized is None:
+            # If repositionWindow was called and client_width is set, assume window is recognized
+            game_window_recognized = (
+                self.client_width != 1920
+                or self.client_height != 1080
+                or self._reposition_done
+            )
+
+        # Default: always assume we're in song selection for now (can be enhanced later with actual detection)
+        if in_song_selection is None:
+            in_song_selection = True
+
+        # Update the button
+        self.continuous_play_button.set_preconditions(
+            game_window_recognized, in_song_selection
+        )
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
