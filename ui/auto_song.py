@@ -17,63 +17,93 @@ from i18n import t
 from src.config import get, set
 
 
-class ContinuousPlaySettingsDialog(QDialog):
-    """Settings dialog for continuous play mode (Phase 6)."""
+class PlayModeSettingsDialog(QDialog):
+    """Settings dialog for play mode (Phase 6 - Redesigned)."""
+
+    PLAY_MODES = {
+        "single": t("play_mode_single", "zh-CN"),
+        "new_songs": t("play_mode_new_songs", "zh-CN"),
+        "continuous": t("play_mode_continuous", "zh-CN"),
+    }
 
     def __init__(self, language: str = "zh-CN", parent=None):
         super().__init__(parent)
         self.language = language
-        self.play_new_songs = False
-        self.continuous_play = False
-        self.selected_difficulty = get("continuous_play_difficulty", "EASY")
-        self.repeat_count = get("continuous_play_repeat_count", 1)
-        self.setWindowTitle(t("continuous_play_settings_title", language))
+        self.selected_mode = get("play_mode", "single")
+        self.selected_difficulty = get("play_mode_difficulty", "EASY")
+        self.repeat_count = get("play_mode_repeat_count", 1)
+        self.setWindowTitle(t("play_mode_settings_title", language))
         self.setWindowFlags(
             Qt.Window | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
         )
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setFixedWidth(400)
+        self.setFixedWidth(450)
         self.initUI()
 
     def initUI(self):
         """Initialize the settings dialog UI."""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(15, 15, 15, 15)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
 
-        # Title/Hint
-        hint_label = QLabel(t("continuous_play_hint", self.language))
-        hint_label.setStyleSheet(
-            "color: white; font-weight: bold; background-color: rgba(0, 0, 0, 150);"
-            "padding: 8px; border-radius: 3px;"
+        # Background widget for styling
+        bg_widget = QWidget()
+        bg_widget.setStyleSheet(
+            "background-color: rgba(40, 40, 40, 200); border-radius: 10px;"
         )
-        main_layout.addWidget(hint_label)
+        bg_layout = QVBoxLayout(bg_widget)
+        bg_layout.setContentsMargins(15, 15, 15, 15)
+        bg_layout.setSpacing(15)
 
-        # Toggle A: Play new songs
-        self.toggle_a = self._create_toggle_button(
-            t("continuous_play_toggle_a", self.language)
-        )
-        self.toggle_a.clicked.connect(self._on_toggle_a_clicked)
-        main_layout.addWidget(self.toggle_a)
+        # Play mode label and dropdown
+        mode_layout = QHBoxLayout()
+        mode_label = QLabel(t("play_mode_label", self.language))
+        mode_label.setStyleSheet("color: white; font-weight: bold;")
+        mode_label.setFixedWidth(100)
 
-        # Toggle B: Continuous play
-        self.toggle_b = self._create_toggle_button(
-            t("continuous_play_toggle_b", self.language)
+        self.mode_combo = QComboBox()
+        modes_text = [
+            t("play_mode_single", self.language),
+            t("play_mode_new_songs", self.language),
+            t("play_mode_continuous", self.language),
+        ]
+        self.mode_combo.addItems(modes_text)
+        self.mode_combo.setStyleSheet(self._get_combo_style())
+        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
+
+        # Set current mode
+        mode_keys = ["single", "new_songs", "continuous"]
+        try:
+            index = mode_keys.index(self.selected_mode)
+            self.mode_combo.setCurrentIndex(index)
+        except ValueError:
+            self.mode_combo.setCurrentIndex(0)
+
+        mode_layout.addWidget(mode_label)
+        mode_layout.addWidget(self.mode_combo, 1)
+        bg_layout.addLayout(mode_layout)
+
+        # Tooltip for new_songs mode
+        self.tooltip_label = QLabel(t("play_mode_new_songs_tooltip", self.language))
+        self.tooltip_label.setStyleSheet(
+            "color: rgba(200, 200, 150, 200); font-size: 10px;"
+            "background-color: rgba(70, 70, 0, 100); padding: 8px; border-radius: 3px;"
         )
-        self.toggle_b.clicked.connect(self._on_toggle_b_clicked)
-        main_layout.addWidget(self.toggle_b)
+        self.tooltip_label.setWordWrap(True)
+        self.tooltip_label.setVisible(False)
+        bg_layout.addWidget(self.tooltip_label)
 
         # Divider
         divider = QWidget()
         divider.setFixedHeight(2)
         divider.setStyleSheet("background-color: rgba(100, 149, 237, 100);")
-        main_layout.addWidget(divider)
+        bg_layout.addWidget(divider)
 
-        # Difficulty selector
+        # Difficulty selector (only for continuous mode)
         difficulty_layout = QHBoxLayout()
         difficulty_label = QLabel(t("difficulty_label", self.language))
         difficulty_label.setStyleSheet("color: white;")
-        difficulty_label.setFixedWidth(80)
+        difficulty_label.setFixedWidth(100)
         self.difficulty_combo = QComboBox()
         self.difficulty_combo.addItems(
             [
@@ -84,7 +114,6 @@ class ContinuousPlaySettingsDialog(QDialog):
             ]
         )
         self.difficulty_combo.setStyleSheet(self._get_combo_style())
-        # Set current difficulty
         difficulties = ["EASY", "NORMAL", "HARD", "EXPERT"]
         try:
             index = difficulties.index(self.selected_difficulty)
@@ -94,13 +123,15 @@ class ContinuousPlaySettingsDialog(QDialog):
 
         difficulty_layout.addWidget(difficulty_label)
         difficulty_layout.addWidget(self.difficulty_combo, 1)
-        main_layout.addLayout(difficulty_layout)
+        self.difficulty_widget = QWidget()
+        self.difficulty_widget.setLayout(difficulty_layout)
+        bg_layout.addWidget(self.difficulty_widget)
 
         # Repeat count
         repeat_layout = QHBoxLayout()
         repeat_label = QLabel(t("repeat_count_label", self.language))
         repeat_label.setStyleSheet("color: white;")
-        repeat_label.setFixedWidth(80)
+        repeat_label.setFixedWidth(100)
         self.repeat_spinbox = QSpinBox()
         self.repeat_spinbox.setMinimum(1)
         self.repeat_spinbox.setMaximum(999)
@@ -109,7 +140,9 @@ class ContinuousPlaySettingsDialog(QDialog):
 
         repeat_layout.addWidget(repeat_label)
         repeat_layout.addWidget(self.repeat_spinbox, 1)
-        main_layout.addLayout(repeat_layout)
+        self.repeat_widget = QWidget()
+        self.repeat_widget.setLayout(repeat_layout)
+        bg_layout.addWidget(self.repeat_widget)
 
         # Buttons
         button_layout = QHBoxLayout()
@@ -123,43 +156,18 @@ class ContinuousPlaySettingsDialog(QDialog):
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
-        main_layout.addLayout(button_layout)
+        bg_layout.addLayout(button_layout)
 
-        # Initially disable settings when no toggle is selected
-        self._update_settings_enabled()
+        main_layout.addWidget(bg_widget)
 
-    def _create_toggle_button(self, text: str) -> QPushButton:
-        """Create a styled toggle button."""
-        button = QPushButton(text)
-        button.setCheckable(True)
-        button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: rgba(100, 149, 237, 100);
-                color: white;
-                border: 2px solid rgba(100, 149, 237, 100);
-                padding: 10px;
-                border-radius: 5px;
-                text-align: left;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: rgba(100, 149, 237, 150);
-            }
-            QPushButton:checked {
-                background-color: rgba(100, 149, 237, 200);
-                border: 2px solid rgba(70, 130, 180, 200);
-            }
-        """
-        )
-        button.setMinimumHeight(45)
-        return button
+        # Initially update visibility of settings
+        self._update_settings_visibility()
 
     def _get_combo_style(self) -> str:
         """Get stylesheet for combo box."""
         return """
             QComboBox {
-                background-color: rgba(40, 40, 40, 200);
+                background-color: rgba(60, 60, 60, 200);
                 color: white;
                 border: 1px solid rgba(100, 149, 237, 150);
                 padding: 5px;
@@ -169,7 +177,7 @@ class ContinuousPlaySettingsDialog(QDialog):
                 background-color: rgba(100, 149, 237, 150);
             }
             QComboBox QAbstractItemView {
-                background-color: rgba(40, 40, 40, 200);
+                background-color: rgba(60, 60, 60, 200);
                 color: white;
                 selection-background-color: rgba(100, 149, 237, 150);
             }
@@ -179,7 +187,7 @@ class ContinuousPlaySettingsDialog(QDialog):
         """Get stylesheet for spinbox."""
         return """
             QSpinBox {
-                background-color: rgba(40, 40, 40, 200);
+                background-color: rgba(60, 60, 60, 200);
                 color: white;
                 border: 1px solid rgba(100, 149, 237, 150);
                 padding: 5px;
@@ -195,69 +203,49 @@ class ContinuousPlaySettingsDialog(QDialog):
         if btn_type == "ok":
             return """
                 QPushButton {
-                    background-color: rgba(0, 100, 0, 150);
+                    background-color: rgba(0, 120, 0, 180);
                     color: white;
                     border: none;
-                    padding: 8px;
+                    padding: 10px;
                     border-radius: 3px;
                     font-weight: bold;
                 }
                 QPushButton:hover {
-                    background-color: rgba(0, 150, 0, 200);
+                    background-color: rgba(0, 180, 0, 220);
                 }
             """
         else:  # cancel
             return """
                 QPushButton {
-                    background-color: rgba(100, 0, 0, 150);
+                    background-color: rgba(120, 0, 0, 180);
                     color: white;
                     border: none;
-                    padding: 8px;
+                    padding: 10px;
                     border-radius: 3px;
                     font-weight: bold;
                 }
                 QPushButton:hover {
-                    background-color: rgba(150, 0, 0, 200);
+                    background-color: rgba(180, 0, 0, 220);
                 }
             """
 
-    def _on_toggle_a_clicked(self):
-        """Handle Toggle A (Play new songs) clicked."""
-        if self.toggle_a.isChecked():
-            self.toggle_b.setChecked(False)
-            self.play_new_songs = True
-            self.continuous_play = False
+    def _on_mode_changed(self):
+        """Handle play mode selection change."""
+        self._update_settings_visibility()
+        # Show tooltip for new_songs mode
+        if self.mode_combo.currentIndex() == 1:
+            self.tooltip_label.setVisible(True)
         else:
-            self.play_new_songs = False
-        self._update_settings_enabled()
+            self.tooltip_label.setVisible(False)
 
-    def _on_toggle_b_clicked(self):
-        """Handle Toggle B (Continuous play) clicked."""
-        if self.toggle_b.isChecked():
-            self.toggle_a.setChecked(False)
-            self.continuous_play = True
-            self.play_new_songs = False
-        else:
-            self.continuous_play = False
-        self._update_settings_enabled()
-
-    def _update_settings_enabled(self):
-        """Update whether detailed settings are enabled."""
-        enabled = self.play_new_songs or self.continuous_play
-        self.difficulty_combo.setEnabled(enabled)
-        self.repeat_spinbox.setEnabled(enabled)
+    def _update_settings_visibility(self):
+        """Update visibility of difficulty and repeat count settings."""
+        is_continuous = self.mode_combo.currentIndex() == 2
+        self.difficulty_widget.setVisible(is_continuous)
+        self.repeat_widget.setVisible(is_continuous)
 
     def _on_ok_clicked(self):
         """Handle OK button clicked."""
-        # Validate inputs
-        if not self.play_new_songs and not self.continuous_play:
-            QMessageBox.warning(
-                self,
-                t("validation_error_title", self.language),
-                "请选择至少一个模式",
-            )
-            return
-
         repeat_count = self.repeat_spinbox.value()
         if repeat_count < 1:
             QMessageBox.warning(
@@ -268,32 +256,38 @@ class ContinuousPlaySettingsDialog(QDialog):
             return
 
         # Save settings to config
+        mode_keys = ["single", "new_songs", "continuous"]
+        selected_mode = mode_keys[self.mode_combo.currentIndex()]
         difficulties = ["EASY", "NORMAL", "HARD", "EXPERT"]
         selected_difficulty = difficulties[self.difficulty_combo.currentIndex()]
-        set("continuous_play_difficulty", selected_difficulty)
-        set("continuous_play_repeat_count", repeat_count)
-        set("continuous_play_new_songs", self.play_new_songs)
-        set("continuous_play_continuous", self.continuous_play)
+
+        set("play_mode", selected_mode)
+        set("play_mode_difficulty", selected_difficulty)
+        set("play_mode_repeat_count", repeat_count)
 
         self.accept()
 
     def get_settings(self) -> dict:
         """Get the configured settings."""
+        mode_keys = ["single", "new_songs", "continuous"]
         difficulties = ["EASY", "NORMAL", "HARD", "EXPERT"]
         return {
-            "play_new_songs": self.play_new_songs,
-            "continuous_play": self.continuous_play,
+            "mode": mode_keys[self.mode_combo.currentIndex()],
             "difficulty": difficulties[self.difficulty_combo.currentIndex()],
             "repeat_count": self.repeat_spinbox.value(),
         }
 
 
 class ContinuousPlayButton(QPushButton):
-    """Custom button for continuous play with enabled/disabled state management."""
+    """Button for play mode settings with current mode display."""
 
     def __init__(self, language: str = "zh-CN", parent=None):
-        super().__init__(t("btn_continuous_play", language), parent)
+        # Initialize with current mode
         self.language = language
+        self.current_mode = get("play_mode", "single")
+        button_text = self._get_button_text()
+        super().__init__(button_text, parent)
+
         self.is_enabled_state = False
         self.game_window_recognized = False
         self.in_song_selection = False
@@ -302,15 +296,28 @@ class ContinuousPlayButton(QPushButton):
         # Connect clicked signal to show settings dialog
         self.clicked.connect(self._on_clicked)
 
+    def _get_button_text(self) -> str:
+        """Get the button text based on current mode."""
+        mode_names = {
+            "single": t("play_mode_single", self.language),
+            "new_songs": t("play_mode_new_songs", self.language),
+            "continuous": t("play_mode_continuous", self.language),
+        }
+        display_text = mode_names.get(
+            self.current_mode, t("play_mode_single", self.language)
+        )
+        return t("play_mode_setting_display", self.language).format(mode=display_text)
+
     def _on_clicked(self):
         """Handle button click - show settings dialog."""
         if not self.isEnabled():
             return
-        # Show continuous play settings dialog
-        dialog = ContinuousPlaySettingsDialog(self.language, self.parent())
+        # Show play mode settings dialog
+        dialog = PlayModeSettingsDialog(self.language, self.parent())
         if dialog.exec_() == QDialog.Accepted:
-            # Settings were saved by the dialog
-            pass
+            # Update button text with new mode
+            self.current_mode = get("play_mode", "single")
+            self.setText(self._get_button_text())
 
     def _setup_styles(self):
         """Setup button styling for enabled and disabled states."""
@@ -346,12 +353,7 @@ class ContinuousPlayButton(QPushButton):
         """
 
     def set_preconditions(self, game_window_recognized: bool, in_song_selection: bool):
-        """Update preconditions for enabling the button.
-
-        Args:
-            game_window_recognized: Whether the game window has been recognized
-            in_song_selection: Whether the UI is in the song selection screen
-        """
+        """Update preconditions for enabling the button."""
         self.game_window_recognized = game_window_recognized
         self.in_song_selection = in_song_selection
         self._update_state()
@@ -373,18 +375,12 @@ class ContinuousPlayButton(QPushButton):
     def set_language(self, language: str):
         """Update button text and tooltip when language changes."""
         self.language = language
-        self.setText(t("btn_continuous_play", language))
+        self.setText(self._get_button_text())
         self._update_state()
 
 
 def attach(engine: Any, overlay_window: Any):
-    """Attach engine controls to the overlay window widgets.
-
-    - Connects the overlay toggle button to engine.toggle_running
-    - Adds continuous play button (disabled by default)
-    - Starts the engine thread
-    """
-    # attach engine reference to window for two-way interaction
+    """Attach engine controls to the overlay window widgets."""
     overlay_window.engine = engine
 
     try:
@@ -406,14 +402,14 @@ def attach(engine: Any, overlay_window: Any):
     if not hasattr(overlay_window, "continuous_play_button"):
         try:
             language = getattr(overlay_window, "language", "zh-CN")
-            overlay_window.continuous_play_button = ContinuousPlayButton(language)
+            overlay_window.continuous_play_button = ContinuousPlayButton(
+                language, overlay_window
+            )
 
             # Find the layout and insert the button
-            # Typically, the button should be inserted before the return button or at the end
             if hasattr(overlay_window, "layout") and overlay_window.layout():
                 layout = overlay_window.layout()
             else:
-                # Try to find the main layout
                 central_widget = overlay_window.centralWidget()
                 if central_widget and central_widget.layout():
                     layout = central_widget.layout()
@@ -442,17 +438,7 @@ def attach(engine: Any, overlay_window: Any):
 
 
 def create_auto_song_view_widget(language: str = "zh-CN") -> Optional[QWidget]:
-    """Create the auto song view widget for Phase 5+.
-
-    This function creates a container widget with the continuous play button
-    and other controls needed for advanced auto song functionality.
-
-    Args:
-        language: The current language code (default: "zh-CN")
-
-    Returns:
-        A QWidget containing the auto song controls, or None if creation fails
-    """
+    """Create the auto song view widget."""
     try:
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -470,5 +456,5 @@ __all__ = [
     "attach",
     "ContinuousPlayButton",
     "create_auto_song_view_widget",
-    "ContinuousPlaySettingsDialog",
+    "PlayModeSettingsDialog",
 ]
