@@ -1,37 +1,39 @@
-import os
-import sys
-from pathlib import Path
-
 # Standard / third-party imports
 import ctypes
+import os
+import sys
+
 try:
     # 设置 DPI 识别（必须在创建 QApplication 之前）
-    ctypes.windll.shcore.SetProcessDpiAwareness(1) # Process_System_DPI_Aware
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)  # Process_System_DPI_Aware
 except Exception:
     try:
         ctypes.windll.user32.SetProcessDPIAware()
     except Exception:
         pass
 
+
 def get_resource_path(relative_path):
-    """ 获取资源的绝对路径，兼容开发环境和 PyInstaller 打包环境 """
-    if hasattr(sys, '_MEIPASS'):
+    """获取资源的绝对路径，兼容开发环境和 PyInstaller 打包环境"""
+    if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
-import json
-import urllib.request
-from pynput.keyboard import Listener
+
+import json  # noqa: E402
+import urllib.request  # noqa: E402
+
+from pynput.keyboard import Listener  # noqa: E402
 
 # Qt imports
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtCore import Qt  # noqa: E402
+from PyQt5.QtGui import QIcon  # noqa: E402
+from PyQt5.QtWidgets import QApplication, QMessageBox  # noqa: E402
 
 # Local imports
-from core.engine import AutoSongEngine
-from ui.auto_song import attach as attach_auto_song
-from ui.main_window import create_overlay
+from core.engine import AutoSongEngine  # noqa: E402
+from ui.auto_song import attach as attach_auto_song  # noqa: E402
+from ui.main_window import create_overlay  # noqa: E402
 
 # runtime globals
 hold_th = 10
@@ -50,7 +52,9 @@ def check_for_updates():
     )
     try:
         # 使用原生 urllib 检查更新，减少打包体积
-        req = urllib.request.Request(GITHUB_API_URL, headers={"User-Agent": "HBR-AutoBeat-Updater"})
+        req = urllib.request.Request(
+            GITHUB_API_URL, headers={"User-Agent": "HBR-AutoBeat-Updater"}
+        )
         with urllib.request.urlopen(req, timeout=2) as response:
             if response.status == 200:
                 data = json.loads(response.read().decode())
@@ -67,14 +71,19 @@ def check_for_updates():
                         f"Latest version: {latest_version}\nLocal version: {LOCAL_VERSION} \nDo you want to update?"
                     )
                     msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-                    msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+                    msg_box.setWindowFlags(
+                        msg_box.windowFlags() | Qt.WindowStaysOnTopHint
+                    )
                     ret = msg_box.exec_()
                     if ret == QMessageBox.Ok:
                         import webbrowser
-                        webbrowser.open("https://github.com/yujianke100/HBR-AutoBeat/releases/latest")
+
+                        webbrowser.open(
+                            "https://github.com/yujianke100/HBR-AutoBeat/releases/latest"
+                        )
                         sys.exit()
     except Exception:
-        pass 
+        pass
 
 
 # 在主脚本中使用：
@@ -112,7 +121,7 @@ if __name__ == "__main__":
     overlay_window = create_overlay(points, LOCAL_VERSION)
     overlay_window.language = "zh-CN"  # 默认语言
     overlay_window.changeLanguage("zh-CN")
-    
+
     # 显示打歌界面并开始异步定位窗口
     overlay_window.show()
     overlay_window.start_reposition_async(points)

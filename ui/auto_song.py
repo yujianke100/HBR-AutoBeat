@@ -1,4 +1,5 @@
 """简化的自动打歌模块 - 仅支持单曲单次模式"""
+
 from typing import Any
 
 

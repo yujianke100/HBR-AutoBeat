@@ -41,7 +41,9 @@ def deactivate_window(
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
         msg_box.setWindowTitle("Window Not Found")
-        msg_box.setText(t("hbr_not_found", "en-US")) # Defaulting or using local if initialized
+        msg_box.setText(
+            t("hbr_not_found", "en-US")
+        )  # Defaulting or using local if initialized
         msg_box.setStandardButtons(QMessageBox.Ok)
         msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
         msg_box.exec_()
@@ -84,7 +86,7 @@ def init(
     reactivate_window(window_title, suppress_messages=test_flag)
 
     hwnd = find_hbr_window(window_title)
-    if hwnd is None: # Should not happen after reactivate_window
+    if hwnd is None:  # Should not happen after reactivate_window
         sys.exit()
 
     client_rect = win32gui.GetClientRect(hwnd)

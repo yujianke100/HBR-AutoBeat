@@ -147,107 +147,120 @@ class TransparentWindow(QMainWindow):
     def showOffsetDetection(self):
         """显示游戏窗口截图并标出识别点位置"""
         try:
-            from PIL import Image, ImageDraw
-            import os
-            from PyQt5.QtGui import QPixmap, QImage
+            from PIL import ImageDraw
             from PyQt5.QtCore import Qt as QtCore
+            from PyQt5.QtGui import QImage, QPixmap
             from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
+
             from core.window_helpers import find_hbr_window
 
             # 获取游戏窗口
             hwnd = find_hbr_window("HeavenBurnsRed")
-            
+
             if hwnd is None:
                 QMessageBox.warning(
                     self,
                     t("offset_detect", self.language),
-                    t("hbr_not_found", self.language)
+                    t("hbr_not_found", self.language),
                 )
                 return
-            
+
             # 尝试激活并聚焦窗口，确保截图是最新的
             try:
                 if win32gui.IsIconic(hwnd):
                     win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
                 win32gui.SetForegroundWindow(hwnd)
                 time.sleep(0.1)
-            except:
+            except Exception:
                 pass
-                
+
             # 获取窗口客户区信息（屏幕坐标）
             client_rect = win32gui.GetClientRect(hwnd)
             left, top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
-            right, bottom = win32gui.ClientToScreen(hwnd, (client_rect[2], client_rect[3]))
-            width = right - left
-            height = bottom - top
-            
+            right, bottom = win32gui.ClientToScreen(
+                hwnd, (client_rect[2], client_rect[3])
+            )
+
             # 使用 ImageGrab 直接从屏幕抓取，比 BitBlt 抓取窗口 DC 更可靠且不会有缓存
             from PIL import ImageGrab
-            screenshot = ImageGrab.grab(bbox=(left, top, right, bottom), all_screens=True)
-            
+
+            screenshot = ImageGrab.grab(
+                bbox=(left, top, right, bottom), all_screens=True
+            )
+
             # 在图像上标记识别点
             draw = ImageDraw.Draw(screenshot)
             points = [
-                (325, 810), (575, 810), (825, 810),
-                (1075, 810), (1325, 810), (1575, 810),
+                (325, 810),
+                (575, 810),
+                (825, 810),
+                (1075, 810),
+                (1325, 810),
+                (1575, 810),
             ]
-            
+
             for point in points:
                 x, y = point
                 radius = 8
-                draw.ellipse([x-radius, y-radius, x+radius, y+radius], 
-                           fill='red', outline='red', width=3)
-                draw.line([x-radius*2, y, x+radius*2, y], fill='red', width=2)
-                draw.line([x, y-radius*2, x, y+radius*2], fill='red', width=2)
-            
+                draw.ellipse(
+                    [x - radius, y - radius, x + radius, y + radius],
+                    fill="red",
+                    outline="red",
+                    width=3,
+                )
+                draw.line([x - radius * 2, y, x + radius * 2, y], fill="red", width=2)
+                draw.line([x, y - radius * 2, x, y + radius * 2], fill="red", width=2)
+
             # 转换为 QPixmap (通过内存，完全不使用磁盘临时文件，彻底杜绝缓存)
             img_data = screenshot.tobytes("raw", "RGB")
-            qimg = QImage(img_data, screenshot.size[0], screenshot.size[1], QImage.Format_RGB888)
+            qimg = QImage(
+                img_data, screenshot.size[0], screenshot.size[1], QImage.Format_RGB888
+            )
             pixmap = QPixmap.fromImage(qimg)
-            
+
             # 创建对话框
             dialog = QDialog(self)
             dialog.setWindowTitle(t("offset_detect", self.language))
             dialog.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
-            dialog.setStyleSheet("background-color: #000000;") # 使用黑色背景
+            dialog.setStyleSheet("background-color: #000000;")  # 使用黑色背景
 
             # 缩放以适应屏幕
             screen_geo = QApplication.primaryScreen().availableGeometry()
             max_disp_w = screen_geo.width() * 0.8
             max_disp_h = screen_geo.height() * 0.8
-            
+
             scaled_pixmap = pixmap.scaled(
-                int(max_disp_w), 
-                int(max_disp_h), 
-                QtCore.KeepAspectRatio, 
-                QtCore.SmoothTransformation
+                int(max_disp_w),
+                int(max_disp_h),
+                QtCore.KeepAspectRatio,
+                QtCore.SmoothTransformation,
             )
-            
+
             layout = QVBoxLayout(dialog)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(0)
-            
+
             label = QLabel()
             label.setPixmap(scaled_pixmap)
             label.setAlignment(Qt.AlignCenter)
-            
+
             layout.addWidget(label)
             # 对话框大小紧贴缩放后的图片，消除多余边框
             dialog.setFixedSize(scaled_pixmap.size())
             dialog.exec_()
-            
+
         except Exception as e:
             QMessageBox.warning(
                 self,
                 t("offset_detect", self.language),
-                f"{t('error_occurred', self.language)}: {str(e)}"
+                f"{t('error_occurred', self.language)}: {str(e)}",
             )
-            
+
         except Exception as e:
             QMessageBox.warning(
                 self,
                 t("offset_detect", self.language),
-                f"{t('error_occurred', self.language)}: {str(e)}"
+                f"{t('error_occurred', self.language)}: {str(e)}",
             )
 
     def initUI(self):
@@ -257,15 +270,16 @@ class TransparentWindow(QMainWindow):
         )
         self.setAttribute(Qt.WA_TranslucentBackground)
         QApplication.setFont(QFont("Microsoft YaHei", 11))
-        
+
         # set window icon using a PyInstaller-compatible path
-        import sys
         import os
-        if hasattr(sys, '_MEIPASS'):
+        import sys
+
+        if hasattr(sys, "_MEIPASS"):
             icon_path = os.path.join(sys._MEIPASS, "icon/favicon.ico")
         else:
             icon_path = Path(__file__).resolve().parents[1] / "icon" / "favicon.ico"
-        
+
         if os.path.exists(str(icon_path)):
             self.setWindowIcon(QIcon(str(icon_path)))
 
@@ -342,11 +356,13 @@ class TransparentWindow(QMainWindow):
 
         # 语言选择下拉框
         self.lang_combo = QComboBox()
-        self.lang_combo.addItems([
-            t("language_zh_cn", "zh-CN"),
-            t("language_ja_jp", "ja-JP"),
-            t("language_en_us", "en-US"),
-        ])
+        self.lang_combo.addItems(
+            [
+                t("language_zh_cn", "zh-CN"),
+                t("language_ja_jp", "ja-JP"),
+                t("language_en_us", "en-US"),
+            ]
+        )
         self.lang_combo.setCurrentIndex(0)  # 默认中文
         self.lang_combo.setStyleSheet(
             """
@@ -367,7 +383,7 @@ class TransparentWindow(QMainWindow):
         """
         )
         self.lang_combo.currentIndexChanged.connect(self._on_language_changed)
-        
+
         first_row_layout.addWidget(self.reposition_button)
         first_row_layout.addWidget(self.lang_combo)
         first_row.setLayout(first_row_layout)
