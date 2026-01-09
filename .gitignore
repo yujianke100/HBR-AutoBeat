@@ -2,3 +2,37 @@ build
 dist
 *.spec
 test.py
+*.exe
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs and caches
+.pytest_cache/
+.mypy_cache/
+.cache/
+logs/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Pre-commit
+.pre-commit-config.yaml
+.github\workflows\lint.yml

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Example pre-push hook: run pre-commit and abort if checks fail
+pre-commit run --all-files
+if [ $? -ne 0 ]; then
+  echo "Pre-push checks failed. Fix issues and try again."
+  exit 1
+fi
