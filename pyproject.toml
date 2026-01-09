@@ -10,6 +10,7 @@ dependencies = [
     "pyinstaller>=6.11.1",
     "pynput>=1.7.7",
     "pywin32>=308",
+    "pyyaml>=6.0.1",
 ]
 
 [tool.black]
