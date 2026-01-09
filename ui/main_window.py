@@ -2,6 +2,9 @@ import time
 from pathlib import Path
 from typing import Tuple
 
+import win32con
+import win32gui
+import win32ui
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
@@ -145,11 +148,14 @@ class TransparentWindow(QMainWindow):
     def showOffsetDetection(self):
         """显示游戏窗口截图并标出识别点位置"""
         try:
-            import win32gui
-            import win32ui
             from PIL import Image, ImageDraw
             import pygetwindow as gw
-            
+            import pyautogui
+            import os
+            from PyQt5.QtGui import QPixmap, QImage
+            from PyQt5.QtCore import Qt as QtCore
+            from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
+
             # 获取游戏窗口
             all_windows = gw.getAllTitles()
             browser_window_titles = [title for title in all_windows if "HeavenBurnsRed" in title]
@@ -164,97 +170,83 @@ class TransparentWindow(QMainWindow):
             
             chosen_browser_title = browser_window_titles[0]
             window = gw.getWindowsWithTitle(chosen_browser_title)[0]
+            
+            # 尝试激活并聚焦窗口，确保截图是最新的
+            try:
+                window.activate()
+                time.sleep(0.1)
+            except:
+                pass
+                
             hwnd = window._hWnd
             
-            # 获取窗口客户区信息
+            # 获取窗口客户区信息（屏幕坐标）
             client_rect = win32gui.GetClientRect(hwnd)
-            client_left, client_top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
-            client_right, client_bottom = win32gui.ClientToScreen(hwnd, (client_rect[2], client_rect[3]))
-            client_width = client_right - client_left
-            client_height = client_bottom - client_top
+            left, top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
+            right, bottom = win32gui.ClientToScreen(hwnd, (client_rect[2], client_rect[3]))
+            width = right - left
+            height = bottom - top
             
-            # 截取窗口
-            wDC = win32gui.GetWindowDC(hwnd)
-            dcObj = win32ui.CreateDCFromHandle(wDC)
-            cDC = dcObj.CreateCompatibleDC()
-            dataBitMap = win32ui.CreateBitmap()
-            dataBitMap.CreateCompatibleBitmap(dcObj, client_width, client_height)
-            cDC.SelectObject(dataBitMap)
-            
-            # 使用 SRCCOPY 复制窗口内容
-            result = cDC.BitBlt((0, 0), (client_width, client_height), dcObj, 
-                              (0, 0), win32con.SRCCOPY)
-            
-            # 转换为PIL图像
-            bmpinfo = dataBitMap.GetInfo()
-            bmpstr = dataBitMap.GetBitmapBits(True)
-            screenshot = Image.frombuffer(
-                'RGB',
-                (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
-                bmpstr, 'raw', 'BGRX', 0, 1)
-            
-            # 清理资源
-            dcObj.DeleteDC()
-            cDC.DeleteDC()
-            win32gui.ReleaseDC(hwnd, wDC)
-            win32gui.DeleteObject(dataBitMap.GetHandle())
+            # 使用 pyautogui 直接从屏幕抓取，比 BitBlt 抓取窗口 DC 更可靠且不会有缓存
+            screenshot = pyautogui.screenshot(region=(left, top, width, height))
             
             # 在图像上标记识别点
             draw = ImageDraw.Draw(screenshot)
             points = [
-                (325, 810),
-                (575, 810),
-                (825, 810),
-                (1075, 810),
-                (1325, 810),
-                (1575, 810),
+                (325, 810), (575, 810), (825, 810),
+                (1075, 810), (1325, 810), (1575, 810),
             ]
             
-            # 画红色圆点标记每个识别点
             for point in points:
                 x, y = point
                 radius = 8
                 draw.ellipse([x-radius, y-radius, x+radius, y+radius], 
                            fill='red', outline='red', width=3)
-                # 画十字线
                 draw.line([x-radius*2, y, x+radius*2, y], fill='red', width=2)
                 draw.line([x, y-radius*2, x, y+radius*2], fill='red', width=2)
             
-            # 保存临时文件并显示
-            import tempfile
-            import os
-            from PyQt5.QtGui import QPixmap
-            from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QScrollArea
+            # 转换为 QPixmap (通过内存，完全不使用磁盘临时文件，彻底杜绝缓存)
+            img_data = screenshot.tobytes("raw", "RGB")
+            qimg = QImage(img_data, screenshot.size[0], screenshot.size[1], QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(qimg)
             
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-            screenshot.save(temp_file.name)
-            temp_file.close()
-            
-            # 创建对话框显示图像
+            # 创建对话框
             dialog = QDialog(self)
             dialog.setWindowTitle(t("offset_detect", self.language))
             dialog.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+            dialog.setStyleSheet("background-color: #000000;") # 使用黑色背景
+
+            # 缩放以适应屏幕
+            screen_geo = QApplication.primaryScreen().availableGeometry()
+            max_disp_w = screen_geo.width() * 0.8
+            max_disp_h = screen_geo.height() * 0.8
             
-            layout = QVBoxLayout()
+            scaled_pixmap = pixmap.scaled(
+                int(max_disp_w), 
+                int(max_disp_h), 
+                QtCore.KeepAspectRatio, 
+                QtCore.SmoothTransformation
+            )
             
-            scroll = QScrollArea()
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
+            
             label = QLabel()
-            pixmap = QPixmap(temp_file.name)
-            label.setPixmap(pixmap)
-            scroll.setWidget(label)
+            label.setPixmap(scaled_pixmap)
+            label.setAlignment(Qt.AlignCenter)
             
-            layout.addWidget(scroll)
-            dialog.setLayout(layout)
-            dialog.resize(min(client_width + 50, 1400), min(client_height + 50, 900))
-            
-            def cleanup():
-                try:
-                    os.unlink(temp_file.name)
-                except:
-                    pass
-            
-            dialog.finished.connect(cleanup)
+            layout.addWidget(label)
+            # 对话框大小紧贴缩放后的图片，消除多余边框
+            dialog.setFixedSize(scaled_pixmap.size())
             dialog.exec_()
+            
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                t("offset_detect", self.language),
+                f"{t('error_occurred', self.language)}: {str(e)}"
+            )
             
         except Exception as e:
             QMessageBox.warning(
@@ -404,9 +396,6 @@ class TransparentWindow(QMainWindow):
         )
         layout.addWidget(self.toggle_button)
 
-        # 初始化语言显示为默认语言
-        self.changeLanguage("zh-CN")
-
         # 长按时间设置
         self.hold_th_input = QSpinBox()
         self.hold_th_input.setRange(0, 100)
@@ -467,6 +456,9 @@ class TransparentWindow(QMainWindow):
         button_row_layout.addWidget(self.offset_detect_button)
         button_row.setLayout(button_row_layout)
         layout.addWidget(button_row)
+
+        # 初始化语言显示为默认语言（放在所有按钮创建之后）
+        self.changeLanguage("zh-CN")
 
     def _on_language_changed(self, index):
         """处理语言切换"""
