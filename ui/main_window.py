@@ -164,7 +164,11 @@ class TransparentWindow(QMainWindow):
                 QMessageBox.warning(
                     self,
                     t("offset_detect", self.language),
-                    t("hbr_not_found", self.language) if find_hbr_window("HeavenBurnsRed") is None else t("resolution_mismatch", self.language),
+                    (
+                        t("hbr_not_found", self.language)
+                        if find_hbr_window("HeavenBurnsRed") is None
+                        else t("resolution_mismatch", self.language)
+                    ),
                 )
                 return
 
@@ -178,7 +182,7 @@ class TransparentWindow(QMainWindow):
 
             # 在图像上标记识别点
             draw = ImageDraw.Draw(screenshot)
-            
+
             # 尝试加载字体以获得更好的可读性
             try:
                 # Windows 常用字体路径
@@ -188,7 +192,7 @@ class TransparentWindow(QMainWindow):
 
             for point in self.points:
                 x, y = point
-                
+
                 # 获取该点的原始颜色（在画红点标记之前）
                 try:
                     r, g, b = screenshot.getpixel((x, y))
@@ -209,10 +213,17 @@ class TransparentWindow(QMainWindow):
                 # 在点位旁边标注 RGB 数值，增加黑色阴影以提高辨识度
                 text_pos = (x + 15, y + 15)
                 if font:
-                    draw.text((text_pos[0]+2, text_pos[1]+2), color_text, fill="black", font=font)
+                    draw.text(
+                        (text_pos[0] + 2, text_pos[1] + 2),
+                        color_text,
+                        fill="black",
+                        font=font,
+                    )
                     draw.text(text_pos, color_text, fill="yellow", font=font)
                 else:
-                    draw.text((text_pos[0]+1, text_pos[1]+1), color_text, fill="black")
+                    draw.text(
+                        (text_pos[0] + 1, text_pos[1] + 1), color_text, fill="black"
+                    )
                     draw.text(text_pos, color_text, fill="yellow")
 
             # 转换为 QPixmap (通过内存，完全不使用磁盘临时文件，彻底杜绝缓存)
