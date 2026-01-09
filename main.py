@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 # Local imports
 from core.engine import AutoSongEngine
 from ui.auto_song import attach as attach_auto_song
-from ui.main_window import ControlWindow, create_overlay
+from ui.main_window import create_overlay
 
 # runtime globals
 hold_th = 10
@@ -95,45 +95,27 @@ if __name__ == "__main__":
         (1575, 810),
     ]
 
-    control = ControlWindow(local_version=LOCAL_VERSION)
+    # 直接创建打歌界面，不再显示主窗口
+    overlay_window = create_overlay(points, LOCAL_VERSION)
+    overlay_window.language = "zh-CN"  # 默认语言
+    overlay_window.changeLanguage("zh-CN")
+    
+    # 显示打歌界面并开始异步定位窗口
+    overlay_window.show()
+    overlay_window.start_reposition_async(points)
 
-    # start feature when user clicks Start in control window
-    def start_feature():
-        control.hide()
-        overlay_window = create_overlay(points, LOCAL_VERSION)
-        overlay_window.language = control.language
-        overlay_window.changeLanguage(control.language)
-        # Show overlay immediately and start async reposition to avoid blocking UI
-        overlay_window.show()
-        overlay_window.start_reposition_async(points)
+    # 创建引擎并附加到界面
+    engine = AutoSongEngine(overlay_window, points, hold_th, single_run_time)
+    attach_auto_song(engine, overlay_window)
 
-        engine = AutoSongEngine(overlay_window, points, hold_th, single_run_time)
-        attach_auto_song(engine, overlay_window)
+    # 启动键盘监听
+    listener = Listener(on_press=engine.on_press, on_release=engine.on_release)
+    listener.start()
 
-        # start keyboard listener bound to engine handlers
-        listener = Listener(on_press=engine.on_press, on_release=engine.on_release)
-        listener.start()
-
-        # store refs to avoid GC
-        globals()["overlay_window"] = overlay_window
-        globals()["engine"] = engine
-        globals()["listener"] = listener
-
-        def _on_return():
-            try:
-                engine.running = False
-            except Exception:
-                pass
-            try:
-                overlay_window.close()
-            except Exception:
-                pass
-            control.show()
-
-        overlay_window.set_return_callback(_on_return)
-
-    control.set_start_callback(start_feature)
-    control.show()
+    # 存储全局引用避免被垃圾回收
+    globals()["overlay_window"] = overlay_window
+    globals()["engine"] = engine
+    globals()["listener"] = listener
 
     # 启动Qt事件循环
     sys.exit(app.exec_())

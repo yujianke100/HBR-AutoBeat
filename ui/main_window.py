@@ -82,11 +82,8 @@ class TransparentWindow(QMainWindow):
         logical_left = int(self.client_left / scale)
         logical_top = int((self.client_top + 150) / scale)
         self.setGeometry(logical_left, logical_top, 10, 10)
-        # Mark that repositioning is done and update continuous play button state
+        # Mark that repositioning is done
         self._reposition_done = True
-        self.update_continuous_play_button_state(
-            game_window_recognized=True, in_song_selection=True
-        )
 
     def start_reposition_async(self, points=None):
         """Start background worker to detect game window and apply geometry when ready."""
@@ -139,11 +136,6 @@ class TransparentWindow(QMainWindow):
         import sys
 
         sys.exit()
-
-    def toggleHelp(self):
-        QMessageBox.information(
-            self, t("help_button", self.language), t("help", self.language)
-        )
 
     def initUI(self):
         # `LOCAL_VERSION` is provided by caller; no global needed here
@@ -211,6 +203,11 @@ class TransparentWindow(QMainWindow):
         self.title_bar.setLayout(self.title_bar_layout)
         self.title_bar.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
 
+        # 第一行：识别游戏窗口按钮 + 语言选择器
+        first_row = QWidget()
+        first_row_layout = QHBoxLayout()
+        first_row_layout.setContentsMargins(0, 0, 0, 0)
+
         self.reposition_button = QPushButton(t("btn_recognize_window", self.language))
         self.reposition_button.setStyleSheet(
             """
@@ -228,6 +225,42 @@ class TransparentWindow(QMainWindow):
         )
         self.reposition_button.clicked.connect(self.repositionWindow)
 
+        # 语言选择下拉框
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems([
+            t("language_zh_cn", "zh-CN"),
+            t("language_ja_jp", "ja-JP"),
+            t("language_en_us", "en-US"),
+        ])
+        self.lang_combo.setCurrentIndex(0)  # 默认中文
+        self.lang_combo.setStyleSheet(
+            """
+            QComboBox {
+                background-color: rgba(0, 0, 0, 150);
+                border-radius: 3px;
+                padding: 5px;
+                color: white;
+            }
+            QComboBox::drop-down {
+                width: 20px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: rgba(0, 0, 0, 200);
+                color: white;
+                selection-background-color: rgba(0, 191, 255, 150);
+            }
+        """
+        )
+        self.lang_combo.currentIndexChanged.connect(self._on_language_changed)
+        
+        first_row_layout.addWidget(self.reposition_button)
+        first_row_layout.addWidget(self.lang_combo)
+        first_row.setLayout(first_row_layout)
+
+        layout.addWidget(self.title_bar)
+        layout.addWidget(first_row)
+
+        # 开始/停止按钮
         self.toggle_button = QPushButton(t("btn_auto_song", self.language))
         self.toggle_button.setStyleSheet(
             """
@@ -243,40 +276,12 @@ class TransparentWindow(QMainWindow):
             }
         """
         )
-
-        self.help_button = QPushButton(t("help_button", self.language))
-        self.help_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: rgba(0,0,0, 150);
-                color: white;
-                border: none;
-                padding: 5px;
-                border-radius: 3px;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 255, 0, 200);
-            }
-        """
-        )
-        self.help_button.clicked.connect(self.toggleHelp)
-
-        layout.addWidget(self.title_bar)
-        layout.addWidget(self.reposition_button)
         layout.addWidget(self.toggle_button)
 
-        # Add continuous play button (Phase 5)
-        from ui.auto_song import ContinuousPlayButton
-
-        self.continuous_play_button = ContinuousPlayButton(self.language, self)
-        layout.addWidget(self.continuous_play_button)
-
-        # Initialize button visibility (show all buttons by default)
-        self.continuous_play_button._manage_ui_visibility(False)
-
-        # 初始化语言显示为默认语言（不改变下拉显示）
+        # 初始化语言显示为默认语言
         self.changeLanguage("zh-CN")
 
+        # 长按时间设置
         self.hold_th_input = QSpinBox()
         self.hold_th_input.setRange(0, 100)
         self.hold_th_input.setValue(10)
@@ -293,49 +298,11 @@ class TransparentWindow(QMainWindow):
         hold_th_layout.addWidget(self.hold_th_input)
         layout.addLayout(hold_th_layout)
 
-        # return button shown on overlay to go back to main control window
-        self.return_button = QPushButton(t("return_to_main", self.language))
-        self.return_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: rgba(0, 191, 255, 150);
-                color: white;
-                border: none;
-                padding: 5px;
-                border-radius: 3px;
-            }            QPushButton:hover {
-                background-color: rgba(0, 191, 255, 200);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 150, 200, 200);
-            }        """
-        )
-        self.return_button.clicked.connect(self._on_return_clicked)
-        # add help button above return button
-        try:
-            layout.addWidget(self.help_button)
-        except Exception:
-            pass
-        layout.addWidget(self.return_button)
-
-        # callback set by caller to handle returning to main window
-        self._return_callback = None
-
-    def set_return_callback(self, cb):
-        self._return_callback = cb
-
-    def _on_return_clicked(self):
-        # stop running and notify
-        try:
-            if hasattr(self, "engine") and self.engine is not None:
-                try:
-                    self.engine.running = False
-                except Exception:
-                    pass
-        except Exception:
-            pass
-        if callable(self._return_callback):
-            self._return_callback()
+    def _on_language_changed(self, index):
+        """处理语言切换"""
+        languages = ["zh-CN", "ja-JP", "en-US"]
+        if 0 <= index < len(languages):
+            self.changeLanguage(languages[index])
 
     def setHoldTh(self, value):
         # value is an int from QSpinBox
@@ -356,14 +323,11 @@ class TransparentWindow(QMainWindow):
     def changeLanguage(self, language):
         self.language = language
         self.reposition_button.setText(t("btn_recognize_window", self.language))
-        self.help_button.setText(t("help_button", self.language))
+        self.toggle_button.setText(t("btn_auto_song", self.language))
         self.close_button.setText(t("close_button", self.language))
         self.title_label.setText(
             t("app_title", self.language).format(version=self.local_version)
         )
-        # Update continuous play button language (Phase 5)
-        if hasattr(self, "continuous_play_button"):
-            self.continuous_play_button.set_language(self.language)
         self.update()
         self.repositionWindow()
 
@@ -432,11 +396,6 @@ class TransparentWindow(QMainWindow):
         self.btnPosition[0] = running
         self.btnPosition[1] = focus
 
-        # Update button visibility based on running and focus state
-        # Hide buttons when both running and focused (activated + focused)
-        if hasattr(self, "continuous_play_button"):
-            self.continuous_play_button._manage_ui_visibility(running and focus)
-
     def toggleRunning(self):
         global running
         running = not running
@@ -445,36 +404,6 @@ class TransparentWindow(QMainWindow):
     @pyqtSlot()
     def updateStatus(self):
         self.changeToggleButton()
-
-    def update_continuous_play_button_state(
-        self, game_window_recognized=None, in_song_selection=None
-    ):
-        """Update the state of the continuous play button based on preconditions.
-
-        Args:
-            game_window_recognized: Whether the game window has been recognized (default: check if repositioned)
-            in_song_selection: Whether the UI is in the song selection screen (default: True for now)
-        """
-        if not hasattr(self, "continuous_play_button"):
-            return
-
-        # Default: game window is recognized if client_width is not 1920 (default) or explicitly checked
-        if game_window_recognized is None:
-            # If repositionWindow was called and client_width is set, assume window is recognized
-            game_window_recognized = (
-                self.client_width != 1920
-                or self.client_height != 1080
-                or self._reposition_done
-            )
-
-        # Default: always assume we're in song selection for now (can be enhanced later with actual detection)
-        if in_song_selection is None:
-            in_song_selection = True
-
-        # Update the button
-        self.continuous_play_button.set_preconditions(
-            game_window_recognized, in_song_selection
-        )
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
