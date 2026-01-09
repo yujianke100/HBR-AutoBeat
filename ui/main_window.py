@@ -4,7 +4,6 @@ from typing import Tuple
 
 import win32con
 import win32gui
-import win32ui
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
@@ -149,18 +148,16 @@ class TransparentWindow(QMainWindow):
         """显示游戏窗口截图并标出识别点位置"""
         try:
             from PIL import Image, ImageDraw
-            import pygetwindow as gw
-            import pyautogui
             import os
             from PyQt5.QtGui import QPixmap, QImage
             from PyQt5.QtCore import Qt as QtCore
             from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
+            from core.window_helpers import find_hbr_window
 
             # 获取游戏窗口
-            all_windows = gw.getAllTitles()
-            browser_window_titles = [title for title in all_windows if "HeavenBurnsRed" in title]
+            hwnd = find_hbr_window("HeavenBurnsRed")
             
-            if not browser_window_titles:
+            if hwnd is None:
                 QMessageBox.warning(
                     self,
                     t("offset_detect", self.language),
@@ -168,18 +165,15 @@ class TransparentWindow(QMainWindow):
                 )
                 return
             
-            chosen_browser_title = browser_window_titles[0]
-            window = gw.getWindowsWithTitle(chosen_browser_title)[0]
-            
             # 尝试激活并聚焦窗口，确保截图是最新的
             try:
-                window.activate()
+                if win32gui.IsIconic(hwnd):
+                    win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                win32gui.SetForegroundWindow(hwnd)
                 time.sleep(0.1)
             except:
                 pass
                 
-            hwnd = window._hWnd
-            
             # 获取窗口客户区信息（屏幕坐标）
             client_rect = win32gui.GetClientRect(hwnd)
             left, top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
@@ -187,8 +181,9 @@ class TransparentWindow(QMainWindow):
             width = right - left
             height = bottom - top
             
-            # 使用 pyautogui 直接从屏幕抓取，比 BitBlt 抓取窗口 DC 更可靠且不会有缓存
-            screenshot = pyautogui.screenshot(region=(left, top, width, height))
+            # 使用 ImageGrab 直接从屏幕抓取，比 BitBlt 抓取窗口 DC 更可靠且不会有缓存
+            from PIL import ImageGrab
+            screenshot = ImageGrab.grab(bbox=(left, top, right, bottom), all_screens=True)
             
             # 在图像上标记识别点
             draw = ImageDraw.Draw(screenshot)

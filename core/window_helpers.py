@@ -1,8 +1,7 @@
 import sys
 import time
-from typing import Tuple
+from typing import List, Optional, Tuple
 
-import pygetwindow as gw
 import win32con
 import win32gui
 import win32ui
@@ -13,52 +12,67 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from i18n import t
 
 
+def find_hbr_window(window_title: str) -> Optional[int]:
+    """Find the window handle (hwnd) for the given partial title."""
+    hwnds: List[int] = []
+
+    def callback(hwnd, extra):
+        if win32gui.IsWindowVisible(hwnd):
+            title = win32gui.GetWindowText(hwnd)
+            if window_title in title:
+                hwnds.append(hwnd)
+        return True
+
+    win32gui.EnumWindows(callback, None)
+    return hwnds[0] if hwnds else None
+
+
 def deactivate_window(
     window_title: str = "HeavenBurnsRed", suppress_messages: bool = False
 ) -> None:
-    all_windows = gw.getAllTitles()
-    browser_window_titles = [title for title in all_windows if window_title in title]
-    if browser_window_titles == []:
+    hwnd = find_hbr_window(window_title)
+    if hwnd is None:
         if suppress_messages:
             return
-        QApplication(sys.argv)
+        # Use existing app if it exists, otherwise create temporary one
+        app = QApplication.instance()
+        if not app:
+            app = QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
-        msg_box.setWindowTitle(t("window_not_found", "Window Not Found"))
-        msg_box.setText(t("hbr_not_found", "HBR was not found."))
+        msg_box.setWindowTitle("Window Not Found")
+        msg_box.setText(t("hbr_not_found", "en-US")) # Defaulting or using local if initialized
         msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)  # type: ignore[attr-defined]
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
         msg_box.exec_()
         sys.exit()
 
-    chosen_browser_title = browser_window_titles[0]
-    window = gw.getWindowsWithTitle(chosen_browser_title)[0]
-    window.minimize()
+    win32gui.ShowWindow(hwnd, win32con.SW_MINIMIZE)
     time.sleep(0.5)
 
 
 def reactivate_window(
     window_title: str = "HeavenBurnsRed", suppress_messages: bool = False
 ) -> None:
-    all_windows = gw.getAllTitles()
-    browser_window_titles = [title for title in all_windows if window_title in title]
-    if browser_window_titles == []:
+    hwnd = find_hbr_window(window_title)
+    if hwnd is None:
         if suppress_messages:
             return
-        QApplication(sys.argv)
+        app = QApplication.instance()
+        if not app:
+            app = QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
         msg_box.setWindowTitle(t("window_not_found", "Window Not Found"))
         msg_box.setText(t("hbr_not_found", "HBR was not found."))
         msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)  # type: ignore[attr-defined]
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
         msg_box.exec_()
         sys.exit()
 
-    chosen_browser_title = browser_window_titles[0]
-    window = gw.getWindowsWithTitle(chosen_browser_title)[0]
-    window.restore()
-    window.activate()
+    if win32gui.IsIconic(hwnd):
+        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+    win32gui.SetForegroundWindow(hwnd)
     time.sleep(0.5)
 
 
@@ -69,12 +83,9 @@ def init(
     # allow caller to suppress message boxes when running in background
     reactivate_window(window_title, suppress_messages=test_flag)
 
-    # get the chosen window
-    all_windows = gw.getAllTitles()
-    browser_window_titles = [title for title in all_windows if window_title in title]
-    chosen_browser_title = browser_window_titles[0]
-    window = gw.getWindowsWithTitle(chosen_browser_title)[0]
-    hwnd = window._hWnd
+    hwnd = find_hbr_window(window_title)
+    if hwnd is None: # Should not happen after reactivate_window
+        sys.exit()
 
     client_rect = win32gui.GetClientRect(hwnd)
     client_left, client_top = win32gui.ClientToScreen(
@@ -89,7 +100,9 @@ def init(
     if client_width != 1920 or client_height != 1080:
         if test_flag:
             raise RuntimeError("resolution-mismatch")
-        QApplication(sys.argv)
+        app = QApplication.instance()
+        if not app:
+            app = QApplication(sys.argv)
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Warning)
         msg_box.setWindowTitle(t("resolution_error", "Resolution Error"))
@@ -103,7 +116,7 @@ def init(
         )
         msg_box.setText(msg)
         msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)  # type: ignore[attr-defined]
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
         msg_box.exec_()
         sys.exit()
 
@@ -125,6 +138,18 @@ def capture_screenshot(left: int, top: int, width: int, height: int) -> Image.Im
     memdc.SelectObject(bmp)
 
     memdc.BitBlt((0, 0), (width, height), srcdc, (left, top), win32con.SRCCOPY)
+
+    signed_ints_array = bmp.GetBitmapBits(True)
+    img = Image.frombuffer(
+        "RGB", (width, height), signed_ints_array, "raw", "BGRX", 0, 1
+    )
+
+    srcdc.DeleteDC()
+    memdc.DeleteDC()
+    win32gui.ReleaseDC(hdesktop, hwindow)
+    win32gui.DeleteObject(bmp.GetHandle())
+
+    return img
 
     bmp_info = bmp.GetInfo()
     bmp_str = bmp.GetBitmapBits(True)

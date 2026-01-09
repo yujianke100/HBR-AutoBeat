@@ -2,10 +2,15 @@ import sys
 from pathlib import Path
 
 # Standard / third-party imports
-import pyautogui  # 不能省，否则会让窗口识别失效  # noqa: F401
-import requests  # type: ignore
-from pynput import keyboard  # noqa: F401
-from pynput.keyboard import Controller, Key, KeyCode, Listener  # noqa: F401
+import ctypes
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1) # Process_System_DPI_Aware
+except Exception:
+    ctypes.windll.user32.SetProcessDPIAware()
+
+import json
+import urllib.request
+from pynput.keyboard import Listener
 
 # Qt imports
 from PyQt5.QtCore import Qt
@@ -33,31 +38,27 @@ def check_for_updates():
         "https://api.github.com/repos/yujianke100/HBR-AutoBeat/releases/latest"
     )
     try:
-        response = requests.get(GITHUB_API_URL, timeout=2)
-        if response.status_code == 200:
-            latest_version = response.json().get("tag_name", "")
-            if latest_version and latest_version > LOCAL_VERSION:
-                # print(f"⚠ Discover a new version: {latest_version}")
-                # 弹出提示框，点击确认后打开浏览器到最新版本的下载页面，点击取消则不打开
-                QApplication(sys.argv)
-                msg_box = QMessageBox()
-                msg_box.setIcon(QMessageBox.Information)
-                msg_box.setWindowTitle("New Version Found")
-                msg_box.setText(
-                    f"Latest version: {latest_version}\nLocal version: {LOCAL_VERSION} \nDo you want to update?"
-                )
-                msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-                msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
-                ret = msg_box.exec_()
-                if ret == QMessageBox.Ok:
-                    import webbrowser
-
-                    webbrowser.open(
-                        "https://github.com/yujianke100/HBR-AutoBeat/releases/latest"
+        req = urllib.request.Request(GITHUB_API_URL, headers={"User-Agent": "HBR-AutoBeat-Updater"})
+        with urllib.request.urlopen(req, timeout=2) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode())
+                latest_version = data.get("tag_name", "")
+                if latest_version and latest_version > LOCAL_VERSION:
+                    # 弹出提示框，点击确认后打开浏览器到最新版本的下载页面，点击取消则不打开
+                    msg_box = QMessageBox()
+                    msg_box.setIcon(QMessageBox.Information)
+                    msg_box.setWindowTitle("New Version Found")
+                    msg_box.setText(
+                        f"Latest version: {latest_version}\nLocal version: {LOCAL_VERSION} \nDo you want to update?"
                     )
-                    sys.exit()
-
-    except requests.RequestException:
+                    msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                    msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+                    ret = msg_box.exec_()
+                    if ret == QMessageBox.Ok:
+                        import webbrowser
+                        webbrowser.open("https://github.com/yujianke100/HBR-AutoBeat/releases/latest")
+                        sys.exit()
+    except Exception:
         pass  # 2 秒内无法访问则跳过
 
 

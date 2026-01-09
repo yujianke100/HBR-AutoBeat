@@ -2,7 +2,6 @@ import time
 from threading import Thread
 from typing import List, Tuple
 
-import pygetwindow as gw
 import win32gui
 from pynput.keyboard import Controller, Key
 from PyQt5.QtCore import QMetaObject, Qt
@@ -59,21 +58,14 @@ class AutoSongEngine:
         self._thread = None
         # debounce for slow-run detection to avoid spurious deactivation on quick focus switches
         self._slow_count = 0
-        self._slow_threshold = 3
+        self._slow_threshold = 15  # 增加阈值，避免瞬时波动导致窗口最小化
         self.window_title = "HeavenBurnsRed"
 
     def is_window_on_top(self):
         try:
             top_window_hwnd = win32gui.GetForegroundWindow()
-            all_titles = gw.getAllTitles()
-            browser_window_titles = [
-                title for title in all_titles if self.window_title in title
-            ]
-            if not browser_window_titles:
-                return False
-            chosen_title = browser_window_titles[0]
-            window = gw.getWindowsWithTitle(chosen_title)[0]
-            return top_window_hwnd == window._hWnd
+            title = win32gui.GetWindowText(top_window_hwnd)
+            return self.window_title in title
         except Exception:
             return False
 
@@ -114,6 +106,8 @@ class AutoSongEngine:
             now_focus = self.is_window_on_top()
             if now_focus and not self.focus:
                 self.focus = True
+                self.low_performance_state = False  # 重新聚焦时重置性能状态
+                self._slow_count = 0
                 self.safeChangeToggleButton()
 
             elif not now_focus and self.focus:
