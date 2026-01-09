@@ -10,6 +10,8 @@ Language: **English**  other translations: [简体中文](README_zh-CN.md)  [日
 
 AutoBeat helper tool for Heaven Burns Red (HBR).
 
+![screenshot](figs/screenshot.png)
+
 ## Quickstart
 
 Download the latest release and run the bundled executable:
@@ -44,7 +46,10 @@ This is a self-use script with no compatibility considerations. The strategy is 
 
 - Key press delays: Try adjusting key size to 80%.
 - Application crashes: Verify you are using the Steam client and the window title is `HeavenBurnsRed`.
-- Rapid tapping or performance issues: Set system scaling to 100% (125% may work on 2K displays).
+- Rapid tapping or performance issues: Set system scaling to 100% (125% may work on 2K displays). In a multi-monitor setup, please ensure the game window is running on the primary monitor. Also, make sure the game window is not obscured by other windows to maintain accurate coordinate recognition. You can try using "Offset Detection" to test if the recognition position is incorrect. The correct recognition result is as follows:
+
+  ![offset-detect](figs/offset_detection.png)
+
 - Complete misses: Confirm the script is running, keys are correctly configured, the game window is fully visible, and try running as administrator if needed.
 
 Discussion:
