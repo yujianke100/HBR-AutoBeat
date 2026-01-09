@@ -21,7 +21,7 @@ from ui.main_window import create_overlay
 hold_th = 10
 single_run_time = 0.015
 low_performance_state = False
-LOCAL_VERSION = "v3.0.0"
+LOCAL_VERSION = "v2.2.0"
 window = None
 running = False
 focus = None

@@ -137,6 +137,132 @@ class TransparentWindow(QMainWindow):
 
         sys.exit()
 
+    def toggleHelp(self):
+        QMessageBox.information(
+            self, t("help_button", self.language), t("help", self.language)
+        )
+
+    def showOffsetDetection(self):
+        """显示游戏窗口截图并标出识别点位置"""
+        try:
+            import win32gui
+            import win32ui
+            from PIL import Image, ImageDraw
+            import pygetwindow as gw
+            
+            # 获取游戏窗口
+            all_windows = gw.getAllTitles()
+            browser_window_titles = [title for title in all_windows if "HeavenBurnsRed" in title]
+            
+            if not browser_window_titles:
+                QMessageBox.warning(
+                    self,
+                    t("offset_detect", self.language),
+                    t("hbr_not_found", self.language)
+                )
+                return
+            
+            chosen_browser_title = browser_window_titles[0]
+            window = gw.getWindowsWithTitle(chosen_browser_title)[0]
+            hwnd = window._hWnd
+            
+            # 获取窗口客户区信息
+            client_rect = win32gui.GetClientRect(hwnd)
+            client_left, client_top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
+            client_right, client_bottom = win32gui.ClientToScreen(hwnd, (client_rect[2], client_rect[3]))
+            client_width = client_right - client_left
+            client_height = client_bottom - client_top
+            
+            # 截取窗口
+            wDC = win32gui.GetWindowDC(hwnd)
+            dcObj = win32ui.CreateDCFromHandle(wDC)
+            cDC = dcObj.CreateCompatibleDC()
+            dataBitMap = win32ui.CreateBitmap()
+            dataBitMap.CreateCompatibleBitmap(dcObj, client_width, client_height)
+            cDC.SelectObject(dataBitMap)
+            
+            # 使用 SRCCOPY 复制窗口内容
+            result = cDC.BitBlt((0, 0), (client_width, client_height), dcObj, 
+                              (0, 0), win32con.SRCCOPY)
+            
+            # 转换为PIL图像
+            bmpinfo = dataBitMap.GetInfo()
+            bmpstr = dataBitMap.GetBitmapBits(True)
+            screenshot = Image.frombuffer(
+                'RGB',
+                (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+                bmpstr, 'raw', 'BGRX', 0, 1)
+            
+            # 清理资源
+            dcObj.DeleteDC()
+            cDC.DeleteDC()
+            win32gui.ReleaseDC(hwnd, wDC)
+            win32gui.DeleteObject(dataBitMap.GetHandle())
+            
+            # 在图像上标记识别点
+            draw = ImageDraw.Draw(screenshot)
+            points = [
+                (325, 810),
+                (575, 810),
+                (825, 810),
+                (1075, 810),
+                (1325, 810),
+                (1575, 810),
+            ]
+            
+            # 画红色圆点标记每个识别点
+            for point in points:
+                x, y = point
+                radius = 8
+                draw.ellipse([x-radius, y-radius, x+radius, y+radius], 
+                           fill='red', outline='red', width=3)
+                # 画十字线
+                draw.line([x-radius*2, y, x+radius*2, y], fill='red', width=2)
+                draw.line([x, y-radius*2, x, y+radius*2], fill='red', width=2)
+            
+            # 保存临时文件并显示
+            import tempfile
+            import os
+            from PyQt5.QtGui import QPixmap
+            from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QScrollArea
+            
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+            screenshot.save(temp_file.name)
+            temp_file.close()
+            
+            # 创建对话框显示图像
+            dialog = QDialog(self)
+            dialog.setWindowTitle(t("offset_detect", self.language))
+            dialog.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+            
+            layout = QVBoxLayout()
+            
+            scroll = QScrollArea()
+            label = QLabel()
+            pixmap = QPixmap(temp_file.name)
+            label.setPixmap(pixmap)
+            scroll.setWidget(label)
+            
+            layout.addWidget(scroll)
+            dialog.setLayout(layout)
+            dialog.resize(min(client_width + 50, 1400), min(client_height + 50, 900))
+            
+            def cleanup():
+                try:
+                    os.unlink(temp_file.name)
+                except:
+                    pass
+            
+            dialog.finished.connect(cleanup)
+            dialog.exec_()
+            
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                t("offset_detect", self.language),
+                f"{t('error_occurred', self.language)}: {str(e)}"
+            )
+
     def initUI(self):
         # `LOCAL_VERSION` is provided by caller; no global needed here
         self.setWindowFlags(
@@ -298,6 +424,50 @@ class TransparentWindow(QMainWindow):
         hold_th_layout.addWidget(self.hold_th_input)
         layout.addLayout(hold_th_layout)
 
+        # 帮助按钮和偏移检测按钮
+        button_row = QWidget()
+        button_row_layout = QHBoxLayout()
+        button_row_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.help_button = QPushButton(t("help_button", self.language))
+        self.help_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(0,0,0, 150);
+                color: white;
+                border: none;
+                padding: 5px;
+                border-radius: 3px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 255, 0, 200);
+            }
+        """
+        )
+        self.help_button.clicked.connect(self.toggleHelp)
+
+        self.offset_detect_button = QPushButton(t("offset_detect", self.language))
+        self.offset_detect_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(100, 149, 237, 150);
+                color: white;
+                border: none;
+                padding: 5px;
+                border-radius: 3px;
+            }
+            QPushButton:hover {
+                background-color: rgba(100, 149, 237, 200);
+            }
+        """
+        )
+        self.offset_detect_button.clicked.connect(self.showOffsetDetection)
+
+        button_row_layout.addWidget(self.help_button)
+        button_row_layout.addWidget(self.offset_detect_button)
+        button_row.setLayout(button_row_layout)
+        layout.addWidget(button_row)
+
     def _on_language_changed(self, index):
         """处理语言切换"""
         languages = ["zh-CN", "ja-JP", "en-US"]
@@ -324,6 +494,8 @@ class TransparentWindow(QMainWindow):
         self.language = language
         self.reposition_button.setText(t("btn_recognize_window", self.language))
         self.toggle_button.setText(t("btn_auto_song", self.language))
+        self.help_button.setText(t("help_button", self.language))
+        self.offset_detect_button.setText(t("offset_detect", self.language))
         self.close_button.setText(t("close_button", self.language))
         self.title_label.setText(
             t("app_title", self.language).format(version=self.local_version)
