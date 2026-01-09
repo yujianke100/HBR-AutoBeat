@@ -36,11 +36,10 @@ This is a self-use script with no compatibility considerations. The strategy is 
 #### Setup Instructions
 
 - Launch the game and set resolution to 1080P (1920  1080).
-- Open the software and click "Auto Song" to open the play window.
+- Open the software.
 - Configure play settings: reset to default, set background to "None", adjust key size to 80%, and disable "Show simultaneous press line".
 - Use the "Detect Game Window" button to align to the game window. Re-detect if the game window moves.
 - Ensure the game is at the "Concert Start" screen. After clicking the activate button, return to the game. When both activate and focus buttons turn green, click "Concert Start" to begin auto play.
-- Additional continuous play settings are available in the Auto Song view.
 
 #### Troubleshooting
 
