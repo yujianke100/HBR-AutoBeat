@@ -41,6 +41,7 @@ class TransparentWindow(QMainWindow):
     def __init__(self, points, local_version=None):
         super().__init__()
         # Defer expensive window detection (win32 calls) to async worker
+        self.points = points
         self.client_left = 0
         self.client_top = 0
         self.client_width = 1920
@@ -77,7 +78,7 @@ class TransparentWindow(QMainWindow):
             self.max_x,
         ) = init(
             "HeavenBurnsRed",
-            [(325, 810), (575, 810), (825, 810), (1075, 810), (1325, 810), (1575, 810)],
+            self.points,
         )
         # Adjust for DPI scaling: win32gui returns physical pixels, Qt expects logical pixels
         scale = get_dpi_scale_factor()
@@ -93,14 +94,7 @@ class TransparentWindow(QMainWindow):
 
         def _worker():
             try:
-                pts = points or [
-                    (325, 810),
-                    (575, 810),
-                    (825, 810),
-                    (1075, 810),
-                    (1325, 810),
-                    (1575, 810),
-                ]
+                pts = points or self.points
                 (
                     client_left,
                     client_top,
@@ -147,60 +141,61 @@ class TransparentWindow(QMainWindow):
     def showOffsetDetection(self):
         """显示游戏窗口截图并标出识别点位置"""
         try:
-            from PIL import ImageDraw
+            from PIL import ImageDraw, ImageFont
             from PyQt5.QtCore import Qt as QtCore
             from PyQt5.QtGui import QImage, QPixmap
             from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
 
-            from core.window_helpers import find_hbr_window
+            from core.window_helpers import capture_screenshot, find_hbr_window, init
 
-            # 获取游戏窗口
-            hwnd = find_hbr_window("HeavenBurnsRed")
-
-            if hwnd is None:
+            # 使用和核心引擎完全一致的方式获取窗口信息
+            try:
+                (
+                    self.client_left,
+                    self.client_top,
+                    self.client_width,
+                    self.client_height,
+                    self.y_value,
+                    self.min_x,
+                    self.max_x,
+                ) = init("HeavenBurnsRed", self.points, test_flag=True)
+            except Exception:
+                #  fallback: 如果由于各种原因（如分辨率不匹配）导致 init 报错，提示用户
                 QMessageBox.warning(
                     self,
                     t("offset_detect", self.language),
-                    t("hbr_not_found", self.language),
+                    t("hbr_not_found", self.language) if find_hbr_window("HeavenBurnsRed") is None else t("resolution_mismatch", self.language),
                 )
                 return
 
-            # 尝试激活并聚焦窗口，确保截图是最新的
-            try:
-                if win32gui.IsIconic(hwnd):
-                    win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-                win32gui.SetForegroundWindow(hwnd)
-                time.sleep(0.1)
-            except Exception:
-                pass
-
-            # 获取窗口客户区信息（屏幕坐标）
-            client_rect = win32gui.GetClientRect(hwnd)
-            left, top = win32gui.ClientToScreen(hwnd, (client_rect[0], client_rect[1]))
-            right, bottom = win32gui.ClientToScreen(
-                hwnd, (client_rect[2], client_rect[3])
-            )
-
-            # 使用 ImageGrab 直接从屏幕抓取，比 BitBlt 抓取窗口 DC 更可靠且不会有缓存
-            from PIL import ImageGrab
-
-            screenshot = ImageGrab.grab(
-                bbox=(left, top, right, bottom), all_screens=True
+            # 使用和核心引擎相同的截图方式 (BitBlt)，确保所见即所得
+            screenshot = capture_screenshot(
+                self.client_left,
+                self.client_top,
+                self.client_width,
+                self.client_height,
             )
 
             # 在图像上标记识别点
             draw = ImageDraw.Draw(screenshot)
-            points = [
-                (325, 810),
-                (575, 810),
-                (825, 810),
-                (1075, 810),
-                (1325, 810),
-                (1575, 810),
-            ]
+            
+            # 尝试加载字体以获得更好的可读性
+            try:
+                # Windows 常用字体路径
+                font = ImageFont.truetype("arial.ttf", 24)
+            except Exception:
+                font = None
 
-            for point in points:
+            for point in self.points:
                 x, y = point
+                
+                # 获取该点的原始颜色（在画红点标记之前）
+                try:
+                    r, g, b = screenshot.getpixel((x, y))
+                    color_text = f"RGB: ({r}, {g}, {b})"
+                except Exception:
+                    color_text = "N/A"
+
                 radius = 8
                 draw.ellipse(
                     [x - radius, y - radius, x + radius, y + radius],
@@ -210,6 +205,15 @@ class TransparentWindow(QMainWindow):
                 )
                 draw.line([x - radius * 2, y, x + radius * 2, y], fill="red", width=2)
                 draw.line([x, y - radius * 2, x, y + radius * 2], fill="red", width=2)
+
+                # 在点位旁边标注 RGB 数值，增加黑色阴影以提高辨识度
+                text_pos = (x + 15, y + 15)
+                if font:
+                    draw.text((text_pos[0]+2, text_pos[1]+2), color_text, fill="black", font=font)
+                    draw.text(text_pos, color_text, fill="yellow", font=font)
+                else:
+                    draw.text((text_pos[0]+1, text_pos[1]+1), color_text, fill="black")
+                    draw.text(text_pos, color_text, fill="yellow")
 
             # 转换为 QPixmap (通过内存，完全不使用磁盘临时文件，彻底杜绝缓存)
             img_data = screenshot.tobytes("raw", "RGB")

@@ -39,7 +39,7 @@ from ui.main_window import create_overlay  # noqa: E402
 hold_th = 10
 single_run_time = 0.015
 low_performance_state = False
-LOCAL_VERSION = "v2.2.0"
+LOCAL_VERSION = "v2.2.1"
 window = None
 running = False
 focus = None
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     # 设置 Windows 的 AppUserModelID，确保任务栏图标显示正确
     try:
-        myappid = "yujianke100.HBR-AutoBeat.v2.2.0"
+        myappid = "yujianke100.HBR-AutoBeat.v2.2.1"
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     except Exception:
         pass
