@@ -2,8 +2,6 @@ import time
 from pathlib import Path
 from typing import Tuple
 
-import win32con
-import win32gui
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
