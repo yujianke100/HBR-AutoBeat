@@ -257,15 +257,17 @@ class TransparentWindow(QMainWindow):
         )
         self.setAttribute(Qt.WA_TranslucentBackground)
         QApplication.setFont(QFont("Microsoft YaHei", 11))
-        # set window icon
-        # try:
-        #     icon_path = Path(__file__).resolve().parents[1] / "icon" / "favicon.ico"
-        #     if icon_path.exists():
-        #         self.setWindowIcon(QIcon(str(icon_path)))
-        # except Exception:
-        #     pass
-        icon_path = Path(__file__).resolve().parents[1] / "icon" / "favicon.ico"
-        self.setWindowIcon(QIcon(str(icon_path)))
+        
+        # set window icon using a PyInstaller-compatible path
+        import sys
+        import os
+        if hasattr(sys, '_MEIPASS'):
+            icon_path = os.path.join(sys._MEIPASS, "icon/favicon.ico")
+        else:
+            icon_path = Path(__file__).resolve().parents[1] / "icon" / "favicon.ico"
+        
+        if os.path.exists(str(icon_path)):
+            self.setWindowIcon(QIcon(str(icon_path)))
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)

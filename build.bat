@@ -67,7 +67,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Packaging %SCRIPT_NAME% as %OUTPUT_NAME%.exe...
-pyinstaller --onefile --noconsole --name=%OUTPUT_NAME% --icon=%ICON_FILE% --hidden-import=yaml --add-data "i18n;i18n" --add-data "figs;figs" %SCRIPT_NAME%
+pyinstaller --onefile --noconsole --name=%OUTPUT_NAME% --icon=%ICON_FILE% --hidden-import=yaml --add-data "i18n;i18n" --add-data "figs;figs" --add-data "icon;icon" %SCRIPT_NAME%
 
 if %errorlevel% neq 0 (
     echo error!

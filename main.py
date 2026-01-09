@@ -1,12 +1,23 @@
+import os
 import sys
 from pathlib import Path
 
 # Standard / third-party imports
 import ctypes
 try:
+    # 设置 DPI 识别（必须在创建 QApplication 之前）
     ctypes.windll.shcore.SetProcessDpiAwareness(1) # Process_System_DPI_Aware
 except Exception:
-    ctypes.windll.user32.SetProcessDPIAware()
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
+def get_resource_path(relative_path):
+    """ 获取资源的绝对路径，兼容开发环境和 PyInstaller 打包环境 """
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 import json
 import urllib.request
@@ -38,14 +49,18 @@ def check_for_updates():
         "https://api.github.com/repos/yujianke100/HBR-AutoBeat/releases/latest"
     )
     try:
+        # 使用原生 urllib 检查更新，减少打包体积
         req = urllib.request.Request(GITHUB_API_URL, headers={"User-Agent": "HBR-AutoBeat-Updater"})
         with urllib.request.urlopen(req, timeout=2) as response:
             if response.status == 200:
                 data = json.loads(response.read().decode())
                 latest_version = data.get("tag_name", "")
                 if latest_version and latest_version > LOCAL_VERSION:
-                    # 弹出提示框，点击确认后打开浏览器到最新版本的下载页面，点击取消则不打开
+                    # 弹出提示框
                     msg_box = QMessageBox()
+                    icon_path = get_resource_path("icon/favicon.ico")
+                    if os.path.exists(icon_path):
+                        msg_box.setWindowIcon(QIcon(icon_path))
                     msg_box.setIcon(QMessageBox.Information)
                     msg_box.setWindowTitle("New Version Found")
                     msg_box.setText(
@@ -59,31 +74,28 @@ def check_for_updates():
                         webbrowser.open("https://github.com/yujianke100/HBR-AutoBeat/releases/latest")
                         sys.exit()
     except Exception:
-        pass  # 2 秒内无法访问则跳过
+        pass 
 
 
 # 在主脚本中使用：
 if __name__ == "__main__":
-    # Set DPI attributes BEFORE creating QApplication
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)  # type: ignore[attr-defined]
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)  # type: ignore[attr-defined]
+    # 在创建 QApplication 之前设置属性
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
-    # create QApplication after setting attributes
     app = QApplication(sys.argv)
 
-    # Set Windows AppUserModelID for proper taskbar icon
+    # 设置 Windows 的 AppUserModelID，确保任务栏图标显示正确
     try:
-        import ctypes
-
-        myappid = "yujianke100.HBR-AutoBeat.v3.0.0"
+        myappid = "yujianke100.HBR-AutoBeat.v2.2.0"
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     except Exception:
         pass
 
-    # Set application icon
-    icon_path = Path(__file__).resolve().parent / "icon" / "favicon.ico"
-    if icon_path.exists():
-        app.setWindowIcon(QIcon(str(icon_path)))
+    # 设置应用程序全局图标
+    icon_path = get_resource_path("icon/favicon.ico")
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QIcon(icon_path))
 
     check_for_updates()
 
