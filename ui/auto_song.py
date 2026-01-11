@@ -22,6 +22,15 @@ def attach(engine: Any, overlay_window: Any):
     except Exception:
         pass
 
+    # sync RGB offset
+    try:
+        if hasattr(overlay_window, "rgb_offset"):
+            engine.rgb_offset = overlay_window.rgb_offset
+            # Since rgb_offset is updated in a dialog, we might need a signal or just poll.
+            # For simplicity, we can just ensure engine knows about it.
+    except Exception:
+        pass
+
     engine.start()
 
 

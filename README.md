@@ -50,6 +50,9 @@ This is a self-use script with no compatibility considerations. The strategy is 
   ![offset-detect](figs/offset_detection.png)
 
 - Complete misses: Confirm the script is running, keys are correctly configured, the game window is fully visible, and try running as administrator if needed.
+- **Color Offset Correction**: If detection is inaccurate (e.g., `RGB: (x, y, z)` values mismatch expectations), **pause the game immediately after starting** (as shown in the screenshot below), ensuring Notes are visible or at the judgment line. Then click "Offset Detection". The software will automatically calculate the offset and prompt you to save.
+
+  ![pause_example](figs/offset_detection.png)
 
 Discussion:
 

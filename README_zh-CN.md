@@ -46,6 +46,9 @@
   ![offset-detect](figs/offset_detection.png)
 
 - 全 miss：确认脚本已启动、按键设置正确、游戏窗口未被遮挡。以管理员权限运行在部分环境可解决问题。
+- **色彩偏移修复**：若发现识别不准（如显示 `RGB: (x, y, z)` 与预期不符），请在**打歌开始后立刻点击暂停**（如下图所示），保持背景有 Note 经过或在判定线位置，随后点击“偏移检测”。软件会自动计算偏移并提示保存。
+
+  ![pause_example](figs/offset_detection.png)
 
 更多讨论：[NGA 帖子](https://bbs.nga.cn/read.php?tid=43140018&_ff=510381)
 

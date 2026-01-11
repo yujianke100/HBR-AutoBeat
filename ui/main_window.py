@@ -1,3 +1,4 @@
+import json
 import time
 from pathlib import Path
 from typing import Tuple
@@ -52,7 +53,29 @@ class TransparentWindow(QMainWindow):
         self.language = "zh-CN"
         self.btnPosition = [None, None]
         self.local_version = local_version or "v0.0.0"
+
+        # 加载本地设置
+        self.settings_file = Path("settings.json")
+        self.rgb_offset = self.load_settings()
+
         self.initUI()
+
+    def load_settings(self):
+        if self.settings_file.exists():
+            try:
+                with open(self.settings_file, "r") as f:
+                    data = json.load(f)
+                    return data.get("rgb_offset", [0, 0, 0])
+            except Exception:
+                pass
+        return [0, 0, 0]
+
+    def save_settings(self):
+        try:
+            with open(self.settings_file, "w") as f:
+                json.dump({"rgb_offset": self.rgb_offset}, f)
+        except Exception:
+            pass
 
     def getWindowInfo(self) -> Tuple[int, int, int, int, int, int, int]:
         return (
@@ -142,7 +165,13 @@ class TransparentWindow(QMainWindow):
             from PIL import ImageDraw, ImageFont
             from PyQt5.QtCore import Qt as QtCore
             from PyQt5.QtGui import QImage, QPixmap
-            from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
+            from PyQt5.QtWidgets import (
+                QDialog,
+                QFormLayout,
+                QLabel,
+                QSpinBox,
+                QVBoxLayout,
+            )
 
             from core.window_helpers import capture_screenshot, find_hbr_window, init
 
@@ -188,14 +217,32 @@ class TransparentWindow(QMainWindow):
             except Exception:
                 font = None
 
-            for point in self.points:
+            expected_colors = [
+                (171, 57, 177),
+                (164, 45, 167),
+                (113, 53, 126),
+                (103, 53, 119),
+                (130, 53, 142),
+                (102, 52, 120),
+            ]
+            detected_colors = []
+            offsets = []
+
+            for i, point in enumerate(self.points):
                 x, y = point
 
                 # 获取该点的原始颜色（在画红点标记之前）
                 try:
                     r, g, b = screenshot.getpixel((x, y))
+                    detected_colors.append((r, g, b))
                     color_text = f"RGB: ({r}, {g}, {b})"
+
+                    # 计算与预期的偏移量
+                    ex_r, ex_g, ex_b = expected_colors[i]
+                    offsets.append((r - ex_r, g - ex_g, b - ex_b))
                 except Exception:
+                    detected_colors.append((0, 0, 0))
+                    offsets.append((0, 0, 0))
                     color_text = "N/A"
 
                 radius = 8
@@ -224,16 +271,90 @@ class TransparentWindow(QMainWindow):
                     )
                     draw.text(text_pos, color_text, fill="yellow")
 
-            # 转换为 QPixmap (通过内存，完全不使用磁盘临时文件，彻底杜绝缓存)
+            # 检查六个点的偏移是否一致
+            suggested_offset = [0, 0, 0]
+            if len(offsets) == 6:
+                all_r = [o[0] for o in offsets]
+                all_g = [o[1] for o in offsets]
+                all_b = [o[2] for o in offsets]
+
+                if len(set(all_r)) == 1:
+                    suggested_offset[0] = all_r[0]
+                if len(set(all_g)) == 1:
+                    suggested_offset[1] = all_g[0]
+                if len(set(all_b)) == 1:
+                    suggested_offset[2] = all_b[0]
+
+            # 转换为 QPixmap
             img_data = screenshot.tobytes("raw", "RGB")
             qimg = QImage(
                 img_data, screenshot.size[0], screenshot.size[1], QImage.Format_RGB888
             )
             pixmap = QPixmap.fromImage(qimg)
 
-            # 创建对话框
+            # 创建偏移设置对话框
+            offset_dialog = QDialog(self)
+            offset_dialog.setWindowTitle(t("rgb_offset_settings", self.language))
+            offset_dialog_layout = QVBoxLayout(offset_dialog)
+
+            # 说明文字 - 列出所有六个点
+            info_text = t("rgb_offset_desc_header", self.language) + "\n"
+            for i in range(6):
+                info_text += (
+                    f"Point {i+1}: Exp {expected_colors[i]}, Act {detected_colors[i]}\n"
+                )
+
+            info_label = QLabel(info_text)
+            info_label.setStyleSheet(
+                "font-family: 'Consolas', 'Courier New', monospace;"
+            )
+            offset_dialog_layout.addWidget(info_label)
+
+            form_layout = QFormLayout()
+            r_spin = QSpinBox()
+            r_spin.setRange(-255, 255)
+            r_spin.setValue(
+                suggested_offset[0] if suggested_offset[0] != 0 else self.rgb_offset[0]
+            )
+            g_spin = QSpinBox()
+            g_spin.setRange(-255, 255)
+            g_spin.setValue(
+                suggested_offset[1] if suggested_offset[1] != 0 else self.rgb_offset[1]
+            )
+            b_spin = QSpinBox()
+            b_spin.setRange(-255, 255)
+            b_spin.setValue(
+                suggested_offset[2] if suggested_offset[2] != 0 else self.rgb_offset[2]
+            )
+
+            form_layout.addRow("R Offset:", r_spin)
+            form_layout.addRow("G Offset:", g_spin)
+            form_layout.addRow("B Offset:", b_spin)
+            offset_dialog_layout.addLayout(form_layout)
+
+            save_btn = QPushButton(t("save_settings", self.language))
+
+            def on_save():
+                self.rgb_offset = [r_spin.value(), g_spin.value(), b_spin.value()]
+                self.save_settings()
+                # 同步到引擎
+                if hasattr(self, "engine") and self.engine:
+                    self.engine.rgb_offset = self.rgb_offset
+                offset_dialog.accept()
+
+            save_btn.clicked.connect(on_save)
+            offset_dialog_layout.addWidget(save_btn)
+
+            # 只有当 suggested_offset 不完全为 0 且与当前设置不同时才自动弹出设置窗口，
+            # 否则可以由用户手动开启（这里我们为了满足用户需求，只要点击偏移检测就弹出）
+            # 或者我们在这里采用非模态展示？用户说“在展示截图的同时弹出一个新窗口”
+            offset_dialog.show()
+
+            # 创建截图显示对话框
             dialog = QDialog(self)
             dialog.setWindowTitle(t("offset_detect", self.language))
+            # 设置为非模态，这样用户可以同时操作偏移设置窗口
+            dialog.setModal(False)
             dialog.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
             dialog.setStyleSheet("background-color: #000000;")  # 使用黑色背景
 
@@ -260,14 +381,13 @@ class TransparentWindow(QMainWindow):
             layout.addWidget(label)
             # 对话框大小紧贴缩放后的图片，消除多余边框
             dialog.setFixedSize(scaled_pixmap.size())
-            dialog.exec_()
 
-        except Exception as e:
-            QMessageBox.warning(
-                self,
-                t("offset_detect", self.language),
-                f"{t('error_occurred', self.language)}: {str(e)}",
-            )
+            # 使用 show() 而不是 exec_() 来保持非模态运行
+            dialog.show()
+
+            # 为了防止 dialog 被垃圾回收，将其引用保存到 self
+            self._current_detect_dialog = dialog
+            self._current_offset_dialog = offset_dialog
 
         except Exception as e:
             QMessageBox.warning(

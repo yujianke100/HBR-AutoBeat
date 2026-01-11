@@ -60,6 +60,7 @@ class AutoSongEngine:
         self._slow_count = 0
         self._slow_threshold = 15  # 增加阈值，避免瞬时波动导致窗口最小化
         self.window_title = "HeavenBurnsRed"
+        self.rgb_offset = [0, 0, 0]
 
     def is_window_on_top(self):
         try:
@@ -135,6 +136,11 @@ class AutoSongEngine:
                     self.key_states[self.keys[i]] += 1
 
                 r, g, b = color
+                # 应用 RGB 偏移
+                r = max(0, min(255, r - self.rgb_offset[0]))
+                g = max(0, min(255, g - self.rgb_offset[1]))
+                b = max(0, min(255, b - self.rgb_offset[2]))
+
                 original_flag = (
                     (
                         r
