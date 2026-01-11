@@ -273,6 +273,7 @@ class TransparentWindow(QMainWindow):
 
             # 检查六个点的偏移是否一致
             suggested_offset = [0, 0, 0]
+            inconsistent = False
             if len(offsets) == 6:
                 all_r = [o[0] for o in offsets]
                 all_g = [o[1] for o in offsets]
@@ -280,10 +281,16 @@ class TransparentWindow(QMainWindow):
 
                 if len(set(all_r)) == 1:
                     suggested_offset[0] = all_r[0]
+                else:
+                    inconsistent = True
                 if len(set(all_g)) == 1:
                     suggested_offset[1] = all_g[0]
+                else:
+                    inconsistent = True
                 if len(set(all_b)) == 1:
                     suggested_offset[2] = all_b[0]
+                else:
+                    inconsistent = True
 
             # 转换为 QPixmap
             img_data = screenshot.tobytes("raw", "RGB")
@@ -295,6 +302,10 @@ class TransparentWindow(QMainWindow):
             # 创建偏移设置对话框
             offset_dialog = QDialog(self)
             offset_dialog.setWindowTitle(t("rgb_offset_settings", self.language))
+            # 确保设置窗口在最前面
+            offset_dialog.setWindowFlags(
+                offset_dialog.windowFlags() | Qt.WindowStaysOnTopHint
+            )
             offset_dialog_layout = QVBoxLayout(offset_dialog)
 
             # 说明文字 - 列出所有六个点
@@ -309,6 +320,17 @@ class TransparentWindow(QMainWindow):
                 "font-family: 'Consolas', 'Courier New', monospace;"
             )
             offset_dialog_layout.addWidget(info_label)
+
+            # 如果不一致，显示警告文字
+            if inconsistent:
+                warning_label = QLabel(
+                    t("rgb_offset_inconsistent_warning", self.language)
+                )
+                warning_label.setStyleSheet(
+                    "color: #FF4444; font-weight: bold; margin-top: 5px;"
+                )
+                warning_label.setWordWrap(True)
+                offset_dialog_layout.addWidget(warning_label)
 
             form_layout = QFormLayout()
             r_spin = QSpinBox()
@@ -345,11 +367,6 @@ class TransparentWindow(QMainWindow):
             save_btn.clicked.connect(on_save)
             offset_dialog_layout.addWidget(save_btn)
 
-            # 只有当 suggested_offset 不完全为 0 且与当前设置不同时才自动弹出设置窗口，
-            # 否则可以由用户手动开启（这里我们为了满足用户需求，只要点击偏移检测就弹出）
-            # 或者我们在这里采用非模态展示？用户说“在展示截图的同时弹出一个新窗口”
-            offset_dialog.show()
-
             # 创建截图显示对话框
             dialog = QDialog(self)
             dialog.setWindowTitle(t("offset_detect", self.language))
@@ -382,8 +399,12 @@ class TransparentWindow(QMainWindow):
             # 对话框大小紧贴缩放后的图片，消除多余边框
             dialog.setFixedSize(scaled_pixmap.size())
 
-            # 使用 show() 而不是 exec_() 来保持非模态运行
+            # 先显示截图对话框
             dialog.show()
+
+            # 再显示偏移设置对话框并提升其层级，确保它在截图窗口上面
+            offset_dialog.show()
+            offset_dialog.raise_()
 
             # 为了防止 dialog 被垃圾回收，将其引用保存到 self
             self._current_detect_dialog = dialog
